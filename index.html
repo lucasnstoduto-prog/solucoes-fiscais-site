@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Soluções Fiscais</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  :root {
+    --tinta: #0D1B2E;      /* navy da janela do produto */
+    --tinta-2: #12243D;    /* navy um tom acima, p/ cartões sobre navy */
+    --papel: #F6F8FB;      /* fundo da página */
+    --branco: #FFFFFF;
+    --gelo: #BFE0FF;       /* azul-gelo do console */
+    --verde: #0E9F6E;      /* verde "nota autorizada" — ação/acento */
+    --verde-escuro: #0B7A55;
+    --ouro: #D9A62E;       /* filete da marca, uso pontual */
+    --grafite: #3A4A5F;    /* texto secundário */
+    --linha: #DDE5EF;
+    --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+    --corpo: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "JetBrains Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--papel); color: var(--tinta);
+    font-family: var(--corpo); font-size: 16.5px; line-height: 1.6;
+  }
+  h1, h2, h3 { font-family: var(--display); line-height: 1.12; text-wrap: balance; margin: 0; }
+  p { margin: 0; }
+  a { color: inherit; }
+  .larg { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+  .rotulo {
+    font-size: 12.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--verde);
+  }
+  section { padding: 84px 0; }
+
+  /* ---------- navegação ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 50; background: var(--branco);
+    border-bottom: 1px solid var(--linha);
+  }
+  .nav-linha { display: flex; align-items: center; gap: 28px; height: 64px; }
+  .marca { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 19px; text-decoration: none; }
+  .marca svg { display: block; }
+  .nav-links { display: flex; gap: 22px; margin-left: auto; }
+  .nav-links a { text-decoration: none; font-weight: 500; font-size: 15px; color: var(--grafite); }
+  .nav-links a:hover, .nav-links a:focus-visible { color: var(--tinta); }
+  .botao {
+    display: inline-block; background: var(--verde); color: #fff; text-decoration: none;
+    font-weight: 600; padding: 11px 22px; border-radius: 6px; border: none;
+    font-size: 15.5px; cursor: pointer;
+  }
+  .botao:hover, .botao:focus-visible { background: var(--verde-escuro); }
+  .botao.fantasma { background: transparent; color: var(--tinta); border: 1.5px solid var(--linha); }
+  .botao.fantasma:hover { border-color: var(--grafite); background: transparent; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--gelo); outline-offset: 2px; }
+
+  /* ---------- herói ---------- */
+  .heroi { background: var(--tinta); color: var(--gelo); padding: 88px 0 92px; }
+  .heroi .larg { display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; }
+  .heroi h1 { color: #fff; font-size: clamp(34px, 4.6vw, 54px); font-weight: 800; }
+  .heroi h1 em { font-style: normal; color: var(--gelo); }
+  .heroi .apoio { margin-top: 20px; font-size: 18px; color: #9FB9D8; max-width: 34em; }
+  .heroi .acoes { margin-top: 32px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .heroi .acoes .botao.fantasma { color: var(--gelo); border-color: #33507A; }
+  .heroi .fato { margin-top: 34px; display: flex; gap: 26px; flex-wrap: wrap; }
+  .heroi .fato div { font-size: 14px; color: #9FB9D8; }
+  .heroi .fato strong { display: block; color: #fff; font-family: var(--display); font-size: 19px; }
+
+  /* console do produto */
+  .console {
+    background: var(--tinta-2); border: 1px solid #24405F; border-radius: 10px;
+    box-shadow: 0 24px 60px rgba(3, 10, 22, .45); overflow: hidden;
+  }
+  .console-topo { display: flex; align-items: center; gap: 8px; padding: 11px 14px; border-bottom: 1px solid #24405F; }
+  .console-topo i { width: 10px; height: 10px; border-radius: 50%; background: #33507A; display: inline-block; }
+  .console-topo span { margin-left: 6px; font-family: var(--mono); font-size: 12px; color: #7E9CC2; }
+  .console pre {
+    margin: 0; padding: 18px 18px 22px; font-family: var(--mono); font-size: 12.8px;
+    line-height: 1.75; color: var(--gelo); white-space: pre-wrap; word-break: break-word; min-height: 285px;
+  }
+  .console .ok { color: #57D9A3; }
+  .console .dim { color: #7E9CC2; }
+  .filete-ouro { height: 3px; background: var(--ouro); }
+
+  /* ---------- passos ---------- */
+  .passos { background: var(--branco); border-bottom: 1px solid var(--linha); }
+  .cabeca-secao { max-width: 640px; margin-bottom: 46px; }
+  .cabeca-secao h2 { font-size: clamp(26px, 3.2vw, 36px); font-weight: 700; margin-top: 10px; }
+  .cabeca-secao p { margin-top: 14px; color: var(--grafite); }
+  .grade-passos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .passo { border: 1px solid var(--linha); border-radius: 10px; padding: 26px 24px; background: var(--papel); }
+  .passo .num { font-family: var(--mono); font-size: 13px; color: var(--verde); font-weight: 600; }
+  .passo h3 { font-size: 19.5px; font-weight: 700; margin-top: 10px; }
+  .passo p { margin-top: 10px; font-size: 15.5px; color: var(--grafite); }
+
+  /* ---------- entregas ---------- */
+  .grade-entregas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .entrega { background: var(--branco); border: 1px solid var(--linha); border-radius: 10px; padding: 24px; }
+  .entrega svg { color: var(--verde); }
+  .entrega h3 { font-size: 17.5px; font-weight: 700; margin-top: 14px; }
+  .entrega p { margin-top: 8px; font-size: 15px; color: var(--grafite); }
+
+  /* ---------- para quem ---------- */
+  .quem { background: var(--tinta); color: #C9DCF2; }
+  .quem .rotulo { color: var(--ouro); }
+  .quem h2 { color: #fff; }
+  .quem .cabeca-secao p { color: #9FB9D8; }
+  .grade-quem { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .cartao-quem { background: var(--tinta-2); border: 1px solid #24405F; border-radius: 10px; padding: 30px 28px; }
+  .cartao-quem h3 { color: #fff; font-size: 21px; font-weight: 700; }
+  .cartao-quem ul { margin: 16px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  .cartao-quem li { padding-left: 26px; position: relative; font-size: 15.5px; }
+  .cartao-quem li::before { content: "✓"; position: absolute; left: 0; color: #57D9A3; font-weight: 700; }
+
+  /* ---------- planos ---------- */
+  .grade-planos { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 860px; }
+  .plano { background: var(--branco); border: 1px solid var(--linha); border-radius: 10px; padding: 30px 28px; display: flex; flex-direction: column; }
+  .plano.destaque { border: 2px solid var(--verde); position: relative; }
+  .plano .selo {
+    position: absolute; top: -13px; left: 26px; background: var(--verde); color: #fff;
+    font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 99px;
+  }
+  .plano h3 { font-size: 21px; font-weight: 700; }
+  .plano .preco { margin-top: 14px; font-family: var(--display); font-weight: 800; font-size: 38px; font-variant-numeric: tabular-nums; }
+  .plano .preco small { font-family: var(--corpo); font-weight: 500; font-size: 15px; color: var(--grafite); }
+  .plano ul { margin: 18px 0 26px; padding: 0; list-style: none; display: grid; gap: 9px; }
+  .plano li { padding-left: 26px; position: relative; font-size: 15.5px; color: var(--grafite); }
+  .plano li::before { content: "✓"; position: absolute; left: 0; color: var(--verde); font-weight: 700; }
+  .plano .botao { margin-top: auto; text-align: center; }
+  .nota-preco { margin-top: 16px; font-size: 13.5px; color: var(--grafite); }
+
+  /* ---------- faq ---------- */
+  .faq { background: var(--branco); border-top: 1px solid var(--linha); }
+  .faq details { border: 1px solid var(--linha); border-radius: 10px; background: var(--papel); padding: 0 22px; }
+  .faq details + details { margin-top: 12px; }
+  .faq summary { cursor: pointer; font-weight: 600; font-size: 16.5px; padding: 18px 0; list-style: none; position: relative; padding-right: 34px; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; position: absolute; right: 4px; top: 14px; font-family: var(--display); font-size: 22px; color: var(--verde); }
+  .faq details[open] summary::after { content: "–"; }
+  .faq details p { padding: 0 0 20px; color: var(--grafite); max-width: 62em; }
+
+  /* ---------- cta final / rodapé ---------- */
+  .cta-final { background: var(--tinta); color: #9FB9D8; text-align: center; }
+  .cta-final h2 { color: #fff; font-size: clamp(26px, 3.4vw, 40px); font-weight: 800; }
+  .cta-final p { margin: 16px auto 0; max-width: 38em; }
+  .cta-final .acoes { margin-top: 30px; }
+  footer { background: #091423; color: #7E9CC2; padding: 34px 0; font-size: 14.5px; }
+  footer .larg { display: flex; gap: 24px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+  footer .contatos { display: flex; gap: 22px; flex-wrap: wrap; }
+  footer a { color: #C9DCF2; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* ---------- área do cliente / loja (demonstração) ---------- */
+  .veu {
+    position: fixed; inset: 0; z-index: 90; background: rgba(9, 20, 35, .62);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .painel {
+    background: var(--branco); color: var(--tinta); border-radius: 12px;
+    width: 100%; max-width: 430px; padding: 30px 28px;
+    box-shadow: 0 30px 80px rgba(3, 10, 22, .5);
+  }
+  .painel h3 { font-size: 21px; font-weight: 700; }
+  .painel .demo {
+    margin-top: 8px; display: inline-block; background: #FFF4D6; color: #7A5B10;
+    border: 1px solid #EAD189; border-radius: 99px; padding: 3px 12px; font-size: 12.5px; font-weight: 600;
+  }
+  .painel label { display: block; margin-top: 16px; font-size: 13.5px; font-weight: 600; color: var(--grafite); }
+  .painel input[type="email"], .painel input[type="password"], .painel input[type="text"] {
+    width: 100%; margin-top: 6px; padding: 11px 12px; font: inherit; font-size: 15px;
+    border: 1.5px solid var(--linha); border-radius: 7px; background: var(--papel); color: var(--tinta);
+  }
+  .painel input:focus-visible { outline: 3px solid var(--gelo); border-color: var(--verde); }
+  .painel .acoes-painel { margin-top: 22px; display: grid; gap: 10px; }
+  .painel .botao { width: 100%; text-align: center; }
+  .painel .alterna { margin-top: 16px; font-size: 14px; color: var(--grafite); text-align: center; }
+  .painel .alterna a { color: var(--verde); font-weight: 600; text-decoration: none; }
+  .painel .erro-painel { margin-top: 10px; font-size: 13.5px; color: #C62828; min-height: 18px; }
+  .painel .fechar { float: right; border: none; background: none; font-size: 22px; cursor: pointer; color: var(--grafite); line-height: 1; }
+  .opcao-plano { display: flex; gap: 10px; align-items: center; border: 1.5px solid var(--linha); border-radius: 8px; padding: 12px 14px; margin-top: 10px; cursor: pointer; }
+  .opcao-plano input { accent-color: var(--verde); }
+  .opcao-plano.ativa { border-color: var(--verde); background: #F0FAF6; }
+  .opcao-plano strong { font-size: 15px; }
+  .opcao-plano small { display: block; color: var(--grafite); }
+  .resumo-compra { margin-top: 16px; border-top: 1px dashed var(--linha); padding-top: 14px; display: flex; justify-content: space-between; font-weight: 600; }
+  .botao-mp {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: #009EE3; color: #fff; border: none; border-radius: 7px;
+    padding: 12px; font: inherit; font-size: 15.5px; font-weight: 600; cursor: pointer; width: 100%;
+  }
+  .botao-mp:hover, .botao-mp:focus-visible { background: #0087C2; }
+  .nota-mp { margin-top: 10px; font-size: 12.5px; color: var(--grafite); text-align: center; }
+
+  @media (max-width: 880px) {
+    section { padding: 60px 0; }
+    .heroi .larg { grid-template-columns: 1fr; gap: 40px; }
+    .grade-passos, .grade-entregas, .grade-quem, .grade-planos { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+</style>
+
+</head>
+<body>
+<nav>
+  <div class="larg nav-linha">
+    <a class="marca" href="#">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0E9F6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="7" width="16" height="12" rx="2"/><path d="M12 7V4m-4 8h.01M16 12h.01M9 16h6"/></svg>
+      Soluções Fiscais
+    </a>
+    <div class="nav-links">
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#entregas">O que você recebe</a>
+      <a href="#planos">Planos</a>
+      <a href="#faq">Dúvidas</a>
+    </div>
+    <a class="botao fantasma" href="#" id="abrir-conta">Entrar</a>
+    <a class="botao" href="#contato">Falar com a gente</a>
+  </div>
+</nav>
+
+<header class="heroi">
+  <div class="larg">
+    <div>
+      <p class="rotulo">Captura automática · NFS-e Padrão Nacional</p>
+      <h1 style="margin-top:14px">Toda nota fiscal da sua empresa, <em>baixada sozinha, todo dia.</em></h1>
+      <p class="apoio">O robô da Soluções Fiscais busca no Portal Nacional da NFS-e os XMLs de todas as notas emitidas e recebidas pelos seus CNPJs — e entrega tudo organizado: XML, PDF oficial e planilha Excel por competência. Sem digitar nada, sem depender de ninguém lembrar.</p>
+      <div class="acoes">
+        <a class="botao" href="#contato">Quero uma demonstração</a>
+        <a class="botao fantasma" href="#como-funciona">Ver como funciona</a>
+      </div>
+      <div class="fato">
+        <div><strong>Multi-CNPJ</strong>matriz e filiais numa só captura</div>
+        <div><strong>DANFSe v2.0</strong>PDF no modelo oficial</div>
+        <div><strong>100% local</strong>seu certificado não sai do seu PC</div>
+      </div>
+    </div>
+    <div>
+      <div class="filete-ouro"></div>
+      <div class="console" aria-label="Janela de captura do programa">
+        <div class="console-topo"><i></i><i></i><i></i><span>Soluções Fiscais — captura em andamento</span></div>
+        <pre id="log" aria-live="off"></pre>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="passos" id="como-funciona">
+  <div class="larg">
+    <div class="cabeca-secao">
+      <p class="rotulo">Como funciona</p>
+      <h2>Três passos na primeira vez. Depois, nenhum.</h2>
+      <p>Instalou, ativou, escolheu o certificado — o resto é com o robô, inclusive nos dias em que ninguém abre o programa.</p>
+    </div>
+    <div class="grade-passos">
+      <div class="passo">
+        <span class="num">PASSO 01</span>
+        <h3>Aponte o certificado digital</h3>
+        <p>O programa lista os certificados A1 já instalados no Windows. Você só marca quais CNPJs acompanhar — a chave privada nunca é exportada nem sai da sua máquina.</p>
+      </div>
+      <div class="passo">
+        <span class="num">PASSO 02</span>
+        <h3>O robô busca as notas</h3>
+        <p>Conexão direta e segura com o Ambiente de Dados Nacional da NFS-e. A captura é incremental: baixa só o que é novo, retoma de onde parou e pode rodar agendada todos os dias.</p>
+      </div>
+      <div class="passo">
+        <span class="num">PASSO 03</span>
+        <h3>Receba tudo organizado</h3>
+        <p>Pastas por empresa, ano e mês, separando serviços tomados e prestados: XML original, PDF no modelo oficial DANFSe v2.0 e planilha Excel completa por competência.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="entregas">
+  <div class="larg">
+    <div class="cabeca-secao">
+      <p class="rotulo">O que você recebe</p>
+      <h2>Do XML bruto à planilha pronta para a contabilidade</h2>
+    </div>
+    <div class="grade-entregas">
+      <div class="entrega">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+        <h3>Captura incremental diária</h3>
+        <p>Todos os documentos distribuídos para seus CNPJs — notas onde a empresa é prestadora, tomadora ou intermediária, e também eventos de cancelamento.</p>
+      </div>
+      <div class="entrega">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15h6M9 11h2"/></svg>
+        <h3>PDF oficial DANFSe v2.0</h3>
+        <p>Cada nota vira um PDF no modelo oficial da NT 008/2026, com QR de consulta e marca d'água de cancelamento quando houver — pronto para arquivar ou imprimir.</p>
+      </div>
+      <div class="entrega">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        <h3>Planilha por competência</h3>
+        <p>Excel com todos os campos das notas do mês — número, chave, prestador, tomador, valores, retenções — para conferência, contabilização e auditoria.</p>
+      </div>
+      <div class="entrega">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <h3>Pastas que se organizam</h3>
+        <p>Estrutura fixa por empresa: serviços tomados e prestados, cada um com XML e PDF por ano e mês. Qualquer pessoa da equipe acha qualquer nota em segundos.</p>
+      </div>
+      <div class="entrega">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <h3>Agendamento automático</h3>
+        <p>Diário, semanal, quinzenal ou mensal: o robô roda em silêncio no horário que você escolher e deixa XMLs, PDFs e registro de tudo no log.</p>
+      </div>
+      <div class="entrega">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <h3>Segurança de verdade</h3>
+        <p>O certificado digital fica no repositório do Windows e é usado direto de lá. O programa não lê, não exporta e não envia sua chave privada para lugar nenhum.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="quem">
+  <div class="larg">
+    <div class="cabeca-secao">
+      <p class="rotulo">Para quem é</p>
+      <h2>Feito para quem vive de fechar o mês</h2>
+      <p>Da empresa com uma dúzia de filiais ao escritório que cuida de dezenas de clientes.</p>
+    </div>
+    <div class="grade-quem">
+      <div class="cartao-quem">
+        <h3>Escritórios de contabilidade</h3>
+        <ul>
+          <li>Capture as notas de vários clientes num só lugar, cada um com seu certificado</li>
+          <li>Planilhas padronizadas por competência para conferência e lançamento</li>
+          <li>Chega de pedir XML por e-mail ou baixar nota uma a uma no portal</li>
+        </ul>
+      </div>
+      <div class="cartao-quem">
+        <h3>Empresas com matriz e filiais</h3>
+        <ul>
+          <li>Todos os CNPJs do grupo numa única captura automática</li>
+          <li>Notas tomadas separadas das prestadas, competência a competência</li>
+          <li>Base completa para conferir o que a contabilidade lançou — e o que faltou</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="planos">
+  <div class="larg">
+    <div class="cabeca-secao">
+      <p class="rotulo">Planos</p>
+      <h2>Mensalidade simples, por CNPJ</h2>
+      <p>Ativação por código enviado por e-mail, validado online. Sem fidelidade: parou de pagar, o código simplesmente expira.</p>
+    </div>
+    <div class="grade-planos">
+      <div class="plano">
+        <h3>Essencial</h3>
+        <p class="preco">R$ 149<small> /mês · 1 CNPJ</small></p>
+        <ul>
+          <li>Captura automática diária de NFS-e</li>
+          <li>XML + PDF DANFSe v2.0 organizados</li>
+          <li>Planilha Excel por competência</li>
+          <li>Suporte por WhatsApp e e-mail</li>
+        </ul>
+        <a class="botao fantasma" href="#contato">Começar pelo Essencial</a>
+      </div>
+      <div class="plano destaque">
+        <span class="selo">Mais escolhido</span>
+        <h3>Escritório</h3>
+        <p class="preco">R$ 490<small> /mês · até 10 CNPJs</small></p>
+        <ul>
+          <li>Tudo do Essencial, para até 10 CNPJs</li>
+          <li>Certificados ilimitados no mesmo computador</li>
+          <li>Agendamento silencioso com log de auditoria</li>
+          <li>CNPJ adicional: R$ 39/mês</li>
+        </ul>
+        <a class="botao" href="#contato">Falar com a gente</a>
+      </div>
+    </div>
+    <p class="nota-preco">Valores ilustrativos desta página de exemplo — condições comerciais definidas na proposta.</p>
+  </div>
+</section>
+
+<section class="faq" id="faq">
+  <div class="larg">
+    <div class="cabeca-secao">
+      <p class="rotulo">Dúvidas frequentes</p>
+      <h2>O que todo mundo pergunta antes de assinar</h2>
+    </div>
+    <details open>
+      <summary>Preciso entregar meu certificado digital ou a senha dele?</summary>
+      <p>Não. O programa usa o certificado A1 já instalado no Windows, direto do repositório seguro do sistema. A chave privada não é lida, não é exportada e não é enviada para nenhum servidor — nem para o nosso.</p>
+    </details>
+    <details>
+      <summary>Funciona para qualquer prefeitura?</summary>
+      <p>O programa captura as notas do <strong>padrão nacional da NFS-e</strong> (Sistema Nacional). Se o seu município ainda emite notas somente no sistema próprio da prefeitura, sem integração ao ambiente nacional, essas notas ainda não aparecem — e o programa avisa isso com clareza no log, em vez de deixar você achando que não há notas.</p>
+    </details>
+    <details>
+      <summary>O computador precisa ficar ligado?</summary>
+      <p>A captura agendada roda no computador onde o programa está instalado, no horário que você escolher. Se o computador estiver desligado no horário, a próxima captura recupera tudo — ela é incremental e continua exatamente de onde parou.</p>
+    </details>
+    <details>
+      <summary>E se eu perder as notas antigas? Dá para baixar o histórico?</summary>
+      <p>Dá. Na primeira execução o robô baixa a base inteira disponível para o seu CNPJ no ambiente nacional, e não apenas as notas novas. Depois disso, mantém tudo em dia sozinho.</p>
+    </details>
+    <details>
+      <summary>Como funciona a licença?</summary>
+      <p>Você recebe um código de ativação por e-mail com a validade da assinatura. O código é ativado e lacrado no seu computador, com validação online — um código repassado a terceiros é revogado e deixa de funcionar. Renovou, recebeu código novo, colou no programa: pronto.</p>
+    </details>
+  </div>
+</section>
+
+<section class="cta-final" id="contato">
+  <div class="larg">
+    <h2>Deixe as notas com o robô.</h2>
+    <p>Agende uma demonstração: em 20 minutos você vê o programa baixar e organizar as notas da sua própria empresa, na sua frente.</p>
+    <div class="acoes">
+      <a class="botao" href="mailto:contato@solucoesfiscais.com.br">contato@solucoesfiscais.com.br</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="larg">
+    <span>© 2026 Soluções Fiscais — Captura de NFS-e · Padrão Nacional</span>
+    <div class="contatos">
+      <a href="mailto:contato@solucoesfiscais.com.br">contato@solucoesfiscais.com.br</a>
+      <a href="https://www.solucoesfiscais.com.br">www.solucoesfiscais.com.br</a>
+      <span>(51) 99999-9999</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Console do herói: reproduz o log real de uma captura, linha a linha.
+  const LINHAS = [
+    ["dim", "Soluções Fiscais 2026 — captura iniciada 06:00"],
+    ["", "2 certificado(s) selecionado(s)"],
+    ["", ""],
+    ["", "12.345.678/0001-90 — COMERCIAL EXEMPLO LTDA"],
+    ["dim", "   continuando do NSU 8.412…"],
+    ["", "   lote com 50 documento(s) · NSU 8.462"],
+    ["", "   lote com 37 documento(s) · NSU 8.499"],
+    ["ok", "   87 nota(s) nova(s) capturada(s)"],
+    ["ok", "   87 XML(s) e 87 PDF(s) organizados por ano\\mês"],
+    ["", ""],
+    ["", "12.345.678/0002-71 — FILIAL CENTRO"],
+    ["dim", "   continuando do NSU 1.204…"],
+    ["ok", "   12 nota(s) nova(s) capturada(s)"],
+    ["", ""],
+    ["ok", "Planilha ServicosTomados_2026-08.xlsx gerada."],
+    ["dim", "Próxima captura automática: amanhã, 06:00."],
+  ];
+  const alvo = document.getElementById("log");
+  const reduzir = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function render(ate) {
+    alvo.innerHTML = LINHAS.slice(0, ate).map(([cls, txt]) =>
+      cls ? `<span class="${cls}">${txt}</span>` : txt).join("\n");
+  }
+  if (reduzir) { render(LINHAS.length); }
+  else {
+    let i = 0;
+    (function tique() {
+      render(++i);
+      if (i < LINHAS.length) setTimeout(tique, i < 3 ? 500 : 340);
+      else setTimeout(() => { i = 0; tique(); }, 9000);
+    })();
+  }
+</script>
+
+<!-- ======================================================================
+     ÁREA DO CLIENTE / LOJA — DEMONSTRAÇÃO NAVEGÁVEL
+     Nesta página estática o login e a compra rodam só no navegador, para
+     mostrar a jornada completa. Na versão de produção:
+       • login/criação de conta chamam o BACKEND (POST /api/entrar etc.);
+       • o botão "Pagar com Mercado Pago" recebe do backend a URL de um
+         Checkout Pro (preferência criada com o Access Token do MP) e
+         redireciona para ela — ver função pagarMercadoPago() abaixo.
+     ====================================================================== -->
+<style>.veu[hidden] { display: none !important; }</style>
+<div class="veu" id="veu" hidden>
+  <div class="painel" role="dialog" aria-modal="true" aria-labelledby="titulo-painel">
+    <button class="fechar" id="fechar-conta" aria-label="Fechar">×</button>
+
+    <div id="painel-entrar">
+      <h3 id="titulo-painel">Área do cliente</h3>
+      <span class="demo">Demonstração — sem cobrança real</span>
+      <form id="form-entrar">
+        <label for="ent-email">E-mail</label>
+        <input type="email" id="ent-email" autocomplete="email" required>
+        <label for="ent-senha">Senha</label>
+        <input type="password" id="ent-senha" minlength="4" autocomplete="current-password" required>
+        <p class="erro-painel" id="erro-entrar"></p>
+        <div class="acoes-painel"><button class="botao" type="submit">Entrar</button></div>
+      </form>
+      <p class="alterna">Ainda não tem conta? <a href="#" id="ir-criar">Criar conta</a></p>
+    </div>
+
+    <div id="painel-criar" hidden>
+      <h3>Criar conta</h3>
+      <span class="demo">Demonstração — sem cobrança real</span>
+      <form id="form-criar">
+        <label for="cri-nome">Nome / Empresa</label>
+        <input type="text" id="cri-nome" autocomplete="organization" required>
+        <label for="cri-email">E-mail</label>
+        <input type="email" id="cri-email" autocomplete="email" required>
+        <label for="cri-senha">Senha (mínimo 4 caracteres)</label>
+        <input type="password" id="cri-senha" minlength="4" autocomplete="new-password" required>
+        <p class="erro-painel" id="erro-criar"></p>
+        <div class="acoes-painel"><button class="botao" type="submit">Criar conta e continuar</button></div>
+      </form>
+      <p class="alterna">Já tem conta? <a href="#" id="ir-entrar">Entrar</a></p>
+    </div>
+
+    <div id="painel-comprar" hidden>
+      <h3>Assinar o Soluções Fiscais</h3>
+      <span class="demo">Demonstração — sem cobrança real</span>
+      <p style="margin-top:12px;font-size:14.5px;color:var(--grafite)">Olá, <strong id="nome-cliente"></strong>. Escolha o plano:</p>
+      <label class="opcao-plano ativa"><input type="radio" name="plano" value="essencial" checked>
+        <span><strong>Essencial — R$ 149/mês</strong><small>1 CNPJ</small></span></label>
+      <label class="opcao-plano"><input type="radio" name="plano" value="escritorio">
+        <span><strong>Escritório — R$ 490/mês</strong><small>até 10 CNPJs</small></span></label>
+      <div class="resumo-compra"><span>Total mensal</span><span id="total-compra">R$ 149,00</span></div>
+      <div class="acoes-painel">
+        <button class="botao-mp" id="botao-mp">
+          <svg width="20" height="14" viewBox="0 0 40 26" aria-hidden="true"><ellipse cx="20" cy="13" rx="19" ry="12" fill="#fff" opacity=".95"/><path d="M8 13c3-4 7-6 12-6s9 2 12 6c-3 4-7 6-12 6s-9-2-12-6z" fill="#009EE3"/></svg>
+          Pagar com Mercado Pago
+        </button>
+        <p class="nota-mp" id="nota-mp">Na versão final, este botão abre o checkout seguro do Mercado Pago com o plano escolhido; aprovado o pagamento, o código de ativação é enviado por e-mail.</p>
+      </div>
+      <p class="alterna"><a href="#" id="sair-conta">Sair da conta</a></p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Estado de demonstração: sessão fica só neste navegador (localStorage).
+  const veu = document.getElementById("veu");
+  const paineis = { entrar: painelEl("painel-entrar"), criar: painelEl("painel-criar"), comprar: painelEl("painel-comprar") };
+  function painelEl(id) { return document.getElementById(id); }
+  function sessao() { try { return JSON.parse(localStorage.getItem("sf_conta") || "null"); } catch { return null; } }
+  function guardarSessao(dados) { try { localStorage.setItem("sf_conta", JSON.stringify(dados)); } catch {} }
+  function mostrar(nome) {
+    Object.entries(paineis).forEach(([n, el]) => { el.hidden = n !== nome; });
+    if (nome === "comprar") document.getElementById("nome-cliente").textContent = (sessao() || {}).nome || "cliente";
+  }
+  function abrir() { veu.hidden = false; mostrar(sessao() ? "comprar" : "entrar"); }
+  function fechar() { veu.hidden = true; }
+
+  document.getElementById("abrir-conta").addEventListener("click", e => { e.preventDefault(); abrir(); });
+  document.getElementById("fechar-conta").addEventListener("click", fechar);
+  veu.addEventListener("click", e => { if (e.target === veu) fechar(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !veu.hidden) fechar(); });
+  document.getElementById("ir-criar").addEventListener("click", e => { e.preventDefault(); mostrar("criar"); });
+  document.getElementById("ir-entrar").addEventListener("click", e => { e.preventDefault(); mostrar("entrar"); });
+  document.getElementById("sair-conta").addEventListener("click", e => {
+    e.preventDefault(); try { localStorage.removeItem("sf_conta"); } catch {} mostrar("entrar");
+  });
+
+  // PRODUÇÃO: trocar por POST /api/entrar {email, senha} -> token de sessão.
+  document.getElementById("form-entrar").addEventListener("submit", e => {
+    e.preventDefault();
+    const email = document.getElementById("ent-email").value.trim();
+    guardarSessao({ nome: email.split("@")[0], email });
+    mostrar("comprar");
+  });
+
+  // PRODUÇÃO: trocar por POST /api/criar-conta {nome, email, senha}.
+  document.getElementById("form-criar").addEventListener("submit", e => {
+    e.preventDefault();
+    guardarSessao({ nome: document.getElementById("cri-nome").value.trim(),
+                    email: document.getElementById("cri-email").value.trim() });
+    mostrar("comprar");
+  });
+
+  const PRECOS = { essencial: "R$ 149,00", escritorio: "R$ 490,00" };
+  document.querySelectorAll('input[name="plano"]').forEach(radio => {
+    radio.addEventListener("change", () => {
+      document.querySelectorAll(".opcao-plano").forEach(op => op.classList.toggle("ativa", op.contains(radio) && radio.checked));
+      document.getElementById("total-compra").textContent = PRECOS[radio.value];
+    });
+  });
+
+  // PONTO DE INTEGRAÇÃO MERCADO PAGO (Checkout Pro):
+  // o backend cria a preferência com o Access Token e devolve o init_point;
+  // aqui basta: const r = await fetch("/api/comprar", {method:"POST", body:...});
+  //             window.location.href = (await r.json()).init_point;
+  function pagarMercadoPago() {
+    const plano = document.querySelector('input[name="plano"]:checked').value;
+    document.getElementById("nota-mp").innerHTML =
+      `<strong>Demonstração:</strong> aqui o site chamaria o backend para criar a cobrança do plano <strong>${plano}</strong> no Mercado Pago e abriria o checkout seguro. Com a hospedagem contratada, é ligar o Access Token e publicar.`;
+  }
+  document.getElementById("botao-mp").addEventListener("click", pagarMercadoPago);
+</script>
+</body>
+</html>
