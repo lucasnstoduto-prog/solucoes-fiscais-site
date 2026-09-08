@@ -196,6 +196,21 @@
   }
   .botao-mp:hover, .botao-mp:focus-visible { background: #0087C2; }
   .nota-mp { margin-top: 10px; font-size: 12.5px; color: var(--grafite); text-align: center; }
+  .badge-status { display: inline-flex; align-items: center; gap: 6px; border-radius: 99px; padding: 4px 12px; font-size: 13px; font-weight: 600; }
+  .badge-status.emdia { background: #E6F6EE; color: #0E7A46; }
+  .badge-status.atraso { background: #FDECEC; color: #C62828; }
+  .badge-status.pendente { background: #FFF4D6; color: #7A5B10; }
+  .lista-assinaturas { margin-top: 18px; display: grid; gap: 10px; }
+  .item-assinatura { border: 1.5px solid var(--linha); border-radius: 8px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .item-assinatura strong { display: block; font-size: 14.5px; }
+  .item-assinatura small { color: var(--grafite); }
+  .historico { margin-top: 18px; }
+  .historico h4 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .historico table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .historico th, .historico td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--linha); }
+  .historico th { color: var(--grafite); font-weight: 600; }
+  .vazio-painel { color: var(--grafite); font-size: 13.5px; margin-top: 10px; }
+  .painel-scroll { max-height: 75vh; overflow-y: auto; }
 
   @media (max-width: 880px) {
     section { padding: 60px 0; }
@@ -430,7 +445,7 @@
     <div class="contatos">
       <a href="mailto:contato@solucoesfiscais.com.br">contato@solucoesfiscais.com.br</a>
       <a href="https://www.solucoesfiscais.com.br">www.solucoesfiscais.com.br</a>
-      <span>(51) 99999-1111</span>
+      <span>(51) 99999-9999</span>
     </div>
   </div>
 </footer>
@@ -473,36 +488,29 @@
 </script>
 
 <!-- ======================================================================
-     ÁREA DO CLIENTE / LOJA — DEMONSTRAÇÃO NAVEGÁVEL
-     Nesta página estática o login e a compra rodam só no navegador, para
-     mostrar a jornada completa. Na versão de produção:
-       • login/criação de conta chamam o BACKEND (POST /api/entrar etc.);
-       • o botão "Pagar com Mercado Pago" recebe do backend a URL de um
-         Checkout Pro (preferência criada com o Access Token do MP) e
-         redireciona para ela — ver função pagarMercadoPago() abaixo.
+     ÁREA DO CLIENTE — conectada ao backend de verdade (Flask + Mercado Pago)
+     Troque API_BASE abaixo pela URL real do seu backend no Render.
      ====================================================================== -->
 <style>.veu[hidden] { display: none !important; }</style>
 <div class="veu" id="veu" hidden>
-  <div class="painel" role="dialog" aria-modal="true" aria-labelledby="titulo-painel">
+  <div class="painel painel-scroll" role="dialog" aria-modal="true" aria-labelledby="titulo-painel">
     <button class="fechar" id="fechar-conta" aria-label="Fechar">×</button>
 
     <div id="painel-entrar">
       <h3 id="titulo-painel">Área do cliente</h3>
-      <span class="demo">Demonstração — sem cobrança real</span>
       <form id="form-entrar">
         <label for="ent-email">E-mail</label>
         <input type="email" id="ent-email" autocomplete="email" required>
         <label for="ent-senha">Senha</label>
         <input type="password" id="ent-senha" minlength="4" autocomplete="current-password" required>
         <p class="erro-painel" id="erro-entrar"></p>
-        <div class="acoes-painel"><button class="botao" type="submit">Entrar</button></div>
+        <div class="acoes-painel"><button class="botao" type="submit" id="btn-entrar">Entrar</button></div>
       </form>
       <p class="alterna">Ainda não tem conta? <a href="#" id="ir-criar">Criar conta</a></p>
     </div>
 
     <div id="painel-criar" hidden>
       <h3>Criar conta</h3>
-      <span class="demo">Demonstração — sem cobrança real</span>
       <form id="form-criar">
         <label for="cri-nome">Nome / Empresa</label>
         <input type="text" id="cri-nome" autocomplete="organization" required>
@@ -511,15 +519,18 @@
         <label for="cri-senha">Senha (mínimo 4 caracteres)</label>
         <input type="password" id="cri-senha" minlength="4" autocomplete="new-password" required>
         <p class="erro-painel" id="erro-criar"></p>
-        <div class="acoes-painel"><button class="botao" type="submit">Criar conta e continuar</button></div>
+        <div class="acoes-painel"><button class="botao" type="submit" id="btn-criar">Criar conta e continuar</button></div>
       </form>
       <p class="alterna">Já tem conta? <a href="#" id="ir-entrar">Entrar</a></p>
     </div>
 
-    <div id="painel-comprar" hidden>
-      <h3>Assinar o Soluções Fiscais</h3>
-      <span class="demo">Demonstração — sem cobrança real</span>
-      <p style="margin-top:12px;font-size:14.5px;color:var(--grafite)">Olá, <strong id="nome-cliente"></strong>. Escolha o plano:</p>
+    <div id="painel-conta" hidden>
+      <h3>Olá, <span id="nome-cliente"></span></h3>
+
+      <div class="lista-assinaturas" id="lista-assinaturas"></div>
+      <p class="vazio-painel" id="sem-assinatura" hidden>Você ainda não tem nenhuma assinatura ativa.</p>
+
+      <label style="margin-top:20px" for="plano-escolha">Assinar / renovar</label>
       <label class="opcao-plano ativa"><input type="radio" name="plano" value="essencial" checked>
         <span><strong>Essencial — R$ 149/mês</strong><small>1 CNPJ</small></span></label>
       <label class="opcao-plano"><input type="radio" name="plano" value="escritorio">
@@ -530,25 +541,54 @@
           <svg width="20" height="14" viewBox="0 0 40 26" aria-hidden="true"><ellipse cx="20" cy="13" rx="19" ry="12" fill="#fff" opacity=".95"/><path d="M8 13c3-4 7-6 12-6s9 2 12 6c-3 4-7 6-12 6s-9-2-12-6z" fill="#009EE3"/></svg>
           Pagar com Mercado Pago
         </button>
-        <p class="nota-mp" id="nota-mp">Na versão final, este botão abre o checkout seguro do Mercado Pago com o plano escolhido; aprovado o pagamento, o código de ativação é enviado por e-mail.</p>
+        <p class="erro-painel" id="erro-comprar"></p>
       </div>
+
+      <div class="historico">
+        <h4>Histórico de pagamentos</h4>
+        <div id="tabela-historico"></div>
+      </div>
+
       <p class="alterna"><a href="#" id="sair-conta">Sair da conta</a></p>
     </div>
   </div>
 </div>
 
 <script>
-  // Estado de demonstração: sessão fica só neste navegador (localStorage).
+  // TROQUE pela URL real do seu backend depois do deploy no Render, ex.:
+  // "https://api-solucoesfiscais.onrender.com"
+  const API_BASE = "https://SEU-BACKEND.onrender.com";
+
   const veu = document.getElementById("veu");
-  const paineis = { entrar: painelEl("painel-entrar"), criar: painelEl("painel-criar"), comprar: painelEl("painel-comprar") };
   function painelEl(id) { return document.getElementById(id); }
-  function sessao() { try { return JSON.parse(localStorage.getItem("sf_conta") || "null"); } catch { return null; } }
-  function guardarSessao(dados) { try { localStorage.setItem("sf_conta", JSON.stringify(dados)); } catch {} }
+  const paineis = { entrar: painelEl("painel-entrar"), criar: painelEl("painel-criar"), conta: painelEl("painel-conta") };
+
+  function token() { return localStorage.getItem("sf_token"); }
+  function guardarToken(t) { localStorage.setItem("sf_token", t); }
+  function limparToken() { localStorage.removeItem("sf_token"); }
+
+  async function chamarApi(caminho, opcoes = {}) {
+    const cabecalhos = { "Content-Type": "application/json", ...(opcoes.headers || {}) };
+    if (token()) cabecalhos["Authorization"] = `Bearer ${token()}`;
+    const resposta = await fetch(`${API_BASE}${caminho}`, { ...opcoes, headers: cabecalhos });
+    const dados = await resposta.json().catch(() => ({}));
+    if (!resposta.ok) throw new Error(dados.erro || "Não foi possível completar a solicitação.");
+    return dados;
+  }
+
   function mostrar(nome) {
     Object.entries(paineis).forEach(([n, el]) => { el.hidden = n !== nome; });
-    if (nome === "comprar") document.getElementById("nome-cliente").textContent = (sessao() || {}).nome || "cliente";
   }
-  function abrir() { veu.hidden = false; mostrar(sessao() ? "comprar" : "entrar"); }
+
+  async function abrir() {
+    veu.hidden = false;
+    if (token()) {
+      try { await carregarConta(); mostrar("conta"); }
+      catch { limparToken(); mostrar("entrar"); }
+    } else {
+      mostrar("entrar");
+    }
+  }
   function fechar() { veu.hidden = true; }
 
   document.getElementById("abrir-conta").addEventListener("click", e => { e.preventDefault(); abrir(); });
@@ -557,25 +597,99 @@
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !veu.hidden) fechar(); });
   document.getElementById("ir-criar").addEventListener("click", e => { e.preventDefault(); mostrar("criar"); });
   document.getElementById("ir-entrar").addEventListener("click", e => { e.preventDefault(); mostrar("entrar"); });
-  document.getElementById("sair-conta").addEventListener("click", e => {
-    e.preventDefault(); try { localStorage.removeItem("sf_conta"); } catch {} mostrar("entrar");
+
+  document.getElementById("sair-conta").addEventListener("click", async e => {
+    e.preventDefault();
+    try { await chamarApi("/api/sair", { method: "POST" }); } catch {}
+    limparToken();
+    mostrar("entrar");
   });
 
-  // PRODUÇÃO: trocar por POST /api/entrar {email, senha} -> token de sessão.
-  document.getElementById("form-entrar").addEventListener("submit", e => {
+  document.getElementById("form-entrar").addEventListener("submit", async e => {
     e.preventDefault();
-    const email = document.getElementById("ent-email").value.trim();
-    guardarSessao({ nome: email.split("@")[0], email });
-    mostrar("comprar");
+    const erroEl = document.getElementById("erro-entrar");
+    const botao = document.getElementById("btn-entrar");
+    erroEl.textContent = ""; botao.disabled = true; botao.textContent = "Entrando…";
+    try {
+      const dados = await chamarApi("/api/entrar", {
+        method: "POST",
+        body: JSON.stringify({
+          email: document.getElementById("ent-email").value.trim(),
+          senha: document.getElementById("ent-senha").value,
+        }),
+      });
+      guardarToken(dados.token);
+      await carregarConta();
+      mostrar("conta");
+    } catch (err) {
+      erroEl.textContent = err.message;
+    } finally {
+      botao.disabled = false; botao.textContent = "Entrar";
+    }
   });
 
-  // PRODUÇÃO: trocar por POST /api/criar-conta {nome, email, senha}.
-  document.getElementById("form-criar").addEventListener("submit", e => {
+  document.getElementById("form-criar").addEventListener("submit", async e => {
     e.preventDefault();
-    guardarSessao({ nome: document.getElementById("cri-nome").value.trim(),
-                    email: document.getElementById("cri-email").value.trim() });
-    mostrar("comprar");
+    const erroEl = document.getElementById("erro-criar");
+    const botao = document.getElementById("btn-criar");
+    erroEl.textContent = ""; botao.disabled = true; botao.textContent = "Criando…";
+    try {
+      const dados = await chamarApi("/api/registrar", {
+        method: "POST",
+        body: JSON.stringify({
+          nome: document.getElementById("cri-nome").value.trim(),
+          email: document.getElementById("cri-email").value.trim(),
+          senha: document.getElementById("cri-senha").value,
+        }),
+      });
+      guardarToken(dados.token);
+      await carregarConta();
+      mostrar("conta");
+    } catch (err) {
+      erroEl.textContent = err.message;
+    } finally {
+      botao.disabled = false; botao.textContent = "Criar conta e continuar";
+    }
   });
+
+  const NOMES_PLANO = { essencial: "Essencial", escritorio: "Escritório" };
+  const NOMES_STATUS = {
+    authorized: ["Em dia", "emdia"], paused: ["Pausada", "atraso"],
+    cancelled: ["Cancelada", "atraso"], pending: ["Aguardando confirmação", "pendente"],
+  };
+
+  async function carregarConta() {
+    const dados = await chamarApi("/api/minha-conta");
+    document.getElementById("nome-cliente").textContent = dados.usuario.nome;
+
+    const listaEl = document.getElementById("lista-assinaturas");
+    const semEl = document.getElementById("sem-assinatura");
+    listaEl.innerHTML = "";
+    if (dados.assinaturas.length === 0) {
+      semEl.hidden = false;
+    } else {
+      semEl.hidden = true;
+      dados.assinaturas.forEach(a => {
+        const [rotulo, classe] = NOMES_STATUS[a.status_mp] || [a.status_mp, "pendente"];
+        const item = document.createElement("div");
+        item.className = "item-assinatura";
+        item.innerHTML = `<div><strong>${NOMES_PLANO[a.plano] || a.plano}</strong>
+          <small>verificado em ${a.ultima_verificacao || "—"}</small></div>
+          <span class="badge-status ${classe}">${rotulo}</span>`;
+        listaEl.appendChild(item);
+      });
+    }
+
+    const tabelaEl = document.getElementById("tabela-historico");
+    if (dados.pagamentos.length === 0) {
+      tabelaEl.innerHTML = `<p class="vazio-painel">Nenhum pagamento registrado ainda.</p>`;
+    } else {
+      const linhas = dados.pagamentos.map(p => `
+        <tr><td>${p.processado_em}</td><td>R$ ${Number(p.valor || 0).toFixed(2)}</td><td>${p.status}</td></tr>
+      `).join("");
+      tabelaEl.innerHTML = `<table><thead><tr><th>Data</th><th>Valor</th><th>Status</th></tr></thead><tbody>${linhas}</tbody></table>`;
+    }
+  }
 
   const PRECOS = { essencial: "R$ 149,00", escritorio: "R$ 490,00" };
   document.querySelectorAll('input[name="plano"]').forEach(radio => {
@@ -585,16 +699,17 @@
     });
   });
 
-  // PONTO DE INTEGRAÇÃO MERCADO PAGO (Checkout Pro):
-  // o backend cria a preferência com o Access Token e devolve o init_point;
-  // aqui basta: const r = await fetch("/api/comprar", {method:"POST", body:...});
-  //             window.location.href = (await r.json()).init_point;
-  function pagarMercadoPago() {
+  document.getElementById("botao-mp").addEventListener("click", async () => {
+    const erroEl = document.getElementById("erro-comprar");
+    erroEl.textContent = "";
     const plano = document.querySelector('input[name="plano"]:checked').value;
-    document.getElementById("nota-mp").innerHTML =
-      `<strong>Demonstração:</strong> aqui o site chamaria o backend para criar a cobrança do plano <strong>${plano}</strong> no Mercado Pago e abriria o checkout seguro. Com a hospedagem contratada, é ligar o Access Token e publicar.`;
-  }
-  document.getElementById("botao-mp").addEventListener("click", pagarMercadoPago);
+    try {
+      const dados = await chamarApi("/api/assinar", { method: "POST", body: JSON.stringify({ plano }) });
+      window.location.href = dados.init_point; // leva pro checkout seguro do Mercado Pago
+    } catch (err) {
+      erroEl.textContent = err.message;
+    }
+  });
 </script>
 </body>
 </html>
