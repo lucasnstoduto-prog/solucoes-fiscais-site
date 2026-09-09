@@ -537,10 +537,7 @@
         <span><strong>Escritório — R$ 490/mês</strong><small>até 10 CNPJs</small></span></label>
       <div class="resumo-compra"><span>Total mensal</span><span id="total-compra">R$ 149,00</span></div>
       <div class="acoes-painel">
-        <button class="botao-mp" id="botao-mp">
-          <svg width="20" height="14" viewBox="0 0 40 26" aria-hidden="true"><ellipse cx="20" cy="13" rx="19" ry="12" fill="#fff" opacity=".95"/><path d="M8 13c3-4 7-6 12-6s9 2 12 6c-3 4-7 6-12 6s-9-2-12-6z" fill="#009EE3"/></svg>
-          Pagar com Mercado Pago
-        </button>
+        <div id="mp-card-brick-container"></div>
         <p class="erro-painel" id="erro-comprar"></p>
       </div>
 
@@ -554,10 +551,15 @@
   </div>
 </div>
 
+<script src="https://sdk.mercadopago.com/js/v2"></script>
 <script>
   // TROQUE pela URL real do seu backend depois do deploy no Render, ex.:
   // "https://api-solucoesfiscais.onrender.com"
   const API_BASE = "https://solucoes-fiscais-backend.onrender.com";
+  // TROQUE pela sua Public Key do Mercado Pago (painel > Credenciais de
+  // produção > Public Key). Diferente do Access Token, essa chave é segura
+  // pra ficar exposta no código do site — foi feita pra isso.
+  const MP_PUBLIC_KEY = "APP_USR-22375a4b-1357-4693-8340-611d40f56f23";
 
   const veu = document.getElementById("veu");
   function painelEl(id) { return document.getElementById(id); }
@@ -583,7 +585,7 @@
   async function abrir() {
     veu.hidden = false;
     if (token()) {
-      try { await carregarConta(); mostrar("conta"); }
+      try { await carregarConta(); mostrar("conta"); renderizarBrickCartao(); }
       catch { limparToken(); mostrar("entrar"); }
     } else {
       mostrar("entrar");
@@ -621,6 +623,7 @@
       guardarToken(dados.token);
       await carregarConta();
       mostrar("conta");
+      renderizarBrickCartao();
     } catch (err) {
       erroEl.textContent = err.message;
     } finally {
@@ -645,6 +648,7 @@
       guardarToken(dados.token);
       await carregarConta();
       mostrar("conta");
+      renderizarBrickCartao();
     } catch (err) {
       erroEl.textContent = err.message;
     } finally {
@@ -660,6 +664,7 @@
 
   async function carregarConta() {
     const dados = await chamarApi("/api/minha-conta");
+    window.__usuarioLogado = dados.usuario;
     document.getElementById("nome-cliente").textContent = dados.usuario.nome;
 
     const listaEl = document.getElementById("lista-assinaturas");
@@ -692,24 +697,65 @@
   }
 
   const PRECOS = { essencial: "R$ 149,00", escritorio: "R$ 490,00" };
+  const PRECOS_NUM = { essencial: 149.00, escritorio: 490.00 };
   document.querySelectorAll('input[name="plano"]').forEach(radio => {
     radio.addEventListener("change", () => {
       document.querySelectorAll(".opcao-plano").forEach(op => op.classList.toggle("ativa", op.contains(radio) && radio.checked));
       document.getElementById("total-compra").textContent = PRECOS[radio.value];
+      renderizarBrickCartao();
     });
   });
 
-  document.getElementById("botao-mp").addEventListener("click", async () => {
-    const erroEl = document.getElementById("erro-comprar");
-    erroEl.textContent = "";
+  // Assinatura vinculada a plano precisa nascer já com o cartão tokenizado
+  // (o Mercado Pago não tem checkout hospedado pra esse tipo de assinatura).
+  // O Brick abaixo coleta os dados do cartão com segurança (PCI) dentro de
+  // um iframe deles e devolve só um token — o número do cartão nunca passa
+  // pelo nosso backend.
+  let mpBrickController = null;
+  async function renderizarBrickCartao() {
+    if (!window.MercadoPago || !document.getElementById("mp-card-brick-container")) return;
     const plano = document.querySelector('input[name="plano"]:checked').value;
-    try {
-      const dados = await chamarApi("/api/assinar", { method: "POST", body: JSON.stringify({ plano }) });
-      window.location.href = dados.init_point; // leva pro checkout seguro do Mercado Pago
-    } catch (err) {
-      erroEl.textContent = err.message;
+    if (mpBrickController) {
+      try { await mpBrickController.unmount(); } catch {}
     }
-  });
+    const mp = new MercadoPago(MP_PUBLIC_KEY, { locale: "pt-BR" });
+    const bricksBuilder = mp.bricks();
+    mpBrickController = await bricksBuilder.create("payment", "mp-card-brick-container", {
+      initialization: {
+        amount: PRECOS_NUM[plano],
+        payer: { email: (window.__usuarioLogado || {}).email || "" },
+      },
+      customization: {
+        paymentMethods: { creditCard: "all", debitCard: "all", maxInstallments: 1 },
+      },
+      callbacks: {
+        onReady: () => {},
+        onError: () => {
+          document.getElementById("erro-comprar").textContent =
+            "Não foi possível carregar o formulário de pagamento. Recarregue a página.";
+        },
+        onSubmit: ({ formData }) => new Promise(async (resolve, reject) => {
+          const erroEl = document.getElementById("erro-comprar");
+          erroEl.style.color = "";
+          erroEl.textContent = "";
+          try {
+            await chamarApi("/api/assinar", {
+              method: "POST",
+              body: JSON.stringify({ plano, card_token_id: formData.token }),
+            });
+            erroEl.style.color = "#0E7A46";
+            erroEl.textContent = "Assinatura ativada! O código de ativação chega por e-mail em instantes.";
+            await carregarConta();
+            resolve();
+          } catch (err) {
+            erroEl.style.color = "#C62828";
+            erroEl.textContent = err.message;
+            reject();
+          }
+        }),
+      },
+    });
+  }
 </script>
 </body>
 </html>
