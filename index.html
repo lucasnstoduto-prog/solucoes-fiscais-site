@@ -225,6 +225,11 @@
     font-size: 12px; line-height: 1.5; color: var(--grafite);
   }
   .nota-seguranca svg { flex-shrink: 0; margin-top: 1px; color: var(--verde); }
+  .botao-pagamento {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 9px;
+    margin-top: 18px; padding: 12px; font-size: 15px;
+  }
+  .botao-pagamento:disabled { opacity: .65; cursor: default; }
 
   @media (max-width: 880px) {
     section { padding: 60px 0; }
@@ -566,6 +571,37 @@
           </p>
         </div>
         <p class="erro-painel" id="erro-comprar"></p>
+
+        <div class="cartao-pagamento" style="margin-top:14px">
+          <div class="cartao-pagamento-topo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7l5-5 5 5M7 17l5 5 5-5M2 12h4m12 0h4"/></svg>
+            <span>Ou pague só este mês via Pix</span>
+          </div>
+          <p class="nota-seguranca" style="margin-top:0">
+            Pix não renova sozinho — é preciso gerar um novo código todo mês. Prefira cartão se quiser que renove automaticamente.
+          </p>
+          <form id="form-pix" class="form-cartao">
+            <label for="pix-nome">Nome</label>
+            <input type="text" id="pix-nome" autocomplete="given-name" required>
+            <label for="pix-sobrenome">Sobrenome</label>
+            <input type="text" id="pix-sobrenome" autocomplete="family-name" required>
+            <label for="pix-cpf">CPF</label>
+            <input type="text" id="pix-cpf" autocomplete="off" placeholder="000.000.000-00" required>
+            <button type="submit" class="botao botao-pagamento" id="botao-gerar-pix">
+              <span id="texto-botao-pix">Gerar QR Code Pix</span>
+            </button>
+            <p class="erro-painel" id="erro-pix"></p>
+          </form>
+          <div id="resultado-pix" hidden style="margin-top:16px;text-align:center">
+            <img id="pix-qrcode-img" alt="QR Code Pix" style="max-width:220px;width:100%;border-radius:8px;border:1.5px solid var(--linha)">
+            <p style="font-size:13px;color:var(--grafite);margin-top:12px">Ou copie o código:</p>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <input type="text" id="pix-copia-cola" readonly style="flex:1;font-size:12px;padding:9px 10px;border:1.5px solid var(--linha);border-radius:7px;background:var(--papel);color:var(--tinta)">
+              <button type="button" id="btn-copiar-pix" class="botao fantasma" style="padding:9px 16px;white-space:nowrap">Copiar</button>
+            </div>
+            <p id="pix-status" style="font-size:13px;color:var(--grafite);margin-top:12px">Aguardando confirmação do pagamento…</p>
+          </div>
+        </div>
       </div>
 
       <div class="historico">
@@ -800,6 +836,68 @@
       },
     });
   }
+
+  // Pix avulso — alternativa ao cartão, sem renovação automática.
+  document.getElementById("form-pix").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const erroEl = document.getElementById("erro-pix");
+    const botao = document.getElementById("botao-gerar-pix");
+    const textoBotao = document.getElementById("texto-botao-pix");
+    erroEl.textContent = "";
+    botao.disabled = true;
+    textoBotao.textContent = "Gerando…";
+    try {
+      const plano = document.querySelector('input[name="plano"]:checked').value;
+      const dados = await chamarApi("/api/pagar-pix", {
+        method: "POST",
+        body: JSON.stringify({
+          plano,
+          nome: document.getElementById("pix-nome").value.trim(),
+          sobrenome: document.getElementById("pix-sobrenome").value.trim(),
+          cpf: document.getElementById("pix-cpf").value.trim(),
+        }),
+      });
+      document.getElementById("pix-qrcode-img").src = `data:image/png;base64,${dados.qr_code_base64}`;
+      document.getElementById("pix-copia-cola").value = dados.qr_code;
+      document.getElementById("resultado-pix").hidden = false;
+      document.getElementById("pix-status").style.color = "";
+      document.getElementById("pix-status").textContent = "Aguardando confirmação do pagamento…";
+      aguardarConfirmacaoPix(dados.payment_id);
+    } catch (err) {
+      erroEl.textContent = err.message;
+    } finally {
+      botao.disabled = false;
+      textoBotao.textContent = "Gerar QR Code Pix";
+    }
+  });
+
+  document.getElementById("btn-copiar-pix").addEventListener("click", () => {
+    const campo = document.getElementById("pix-copia-cola");
+    campo.select();
+    campo.setSelectionRange(0, 99999);
+    if (navigator.clipboard) navigator.clipboard.writeText(campo.value).catch(() => {});
+    else document.execCommand("copy");
+  });
+
+  async function aguardarConfirmacaoPix(paymentId) {
+    const statusEl = document.getElementById("pix-status");
+    for (let i = 0; i < 40; i++) {
+      await new Promise((r) => setTimeout(r, 10000)); // checa a cada 10s, por ~7 minutos
+      try {
+        const conta = await chamarApi("/api/minha-conta");
+        const pago = conta.pagamentos.find(
+          (p) => String(p.payment_id) === String(paymentId) && p.status === "approved"
+        );
+        if (pago) {
+          statusEl.style.color = "#0E7A46";
+          statusEl.textContent = "Pagamento confirmado! O código de ativação chega por e-mail em instantes.";
+          return;
+        }
+      } catch { /* tenta de novo na próxima rodada */ }
+    }
+    statusEl.textContent = "Ainda não identificamos o pagamento. Se já pagou, aguarde mais um pouco ou atualize a página.";
+  }
 </script>
+
 </body>
 </html>
