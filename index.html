@@ -220,39 +220,11 @@
     color: var(--tinta); padding-bottom: 14px; margin-bottom: 4px; border-bottom: 1px solid var(--linha);
   }
   .cartao-pagamento-topo svg { color: var(--verde); flex-shrink: 0; }
-  .form-cartao label { display: block; margin-top: 14px; font-size: 13px; font-weight: 600; color: var(--grafite); }
-  .form-cartao select {
-    width: 100%; margin-top: 6px; padding: 11px 34px 11px 12px; font: inherit; font-size: 15px;
-    border: 1.5px solid var(--linha); border-radius: 7px; background: var(--papel) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5L6 6.5L11 1.5" stroke="%233A4A5F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat right 12px center;
-    color: var(--tinta); appearance: none; -webkit-appearance: none;
-  }
-  .form-cartao select:focus-visible { outline: 3px solid var(--gelo); border-color: var(--verde); }
-  .campo-seguro {
-    width: 100%; margin-top: 6px; padding: 11px 12px; height: 44px; box-sizing: border-box;
-    border: 1.5px solid var(--linha); border-radius: 7px; background: var(--papel);
-    transition: border-color .15s, box-shadow .15s;
-  }
-  .campo-seguro:focus-within { border-color: var(--verde); box-shadow: 0 0 0 3px var(--gelo); }
-  .campo-seguro iframe { height: 100% !important; }
-  .linha-cartao { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; margin-top: 14px; }
-  .linha-documento { grid-template-columns: 1fr 1.6fr; }
-  .linha-cartao label { margin-top: 0; }
-  .linha-validade { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; }
-  .separador-validade { margin-top: 6px; color: var(--grafite); font-weight: 600; }
-  .campo-cvv { max-width: 100px; }
-  .botao-pagamento {
-    width: 100%; display: flex; align-items: center; justify-content: center; gap: 9px;
-    margin-top: 20px; padding: 13px; font-size: 15.5px;
-  }
-  .botao-pagamento:disabled { opacity: .65; cursor: default; }
   .nota-seguranca {
-    display: flex; align-items: flex-start; gap: 6px; margin-top: 12px;
+    display: flex; align-items: flex-start; gap: 6px; margin-top: 14px;
     font-size: 12px; line-height: 1.5; color: var(--grafite);
   }
   .nota-seguranca svg { flex-shrink: 0; margin-top: 1px; color: var(--verde); }
-  @media (max-width: 420px) {
-    .linha-cartao { grid-template-columns: 1fr; gap: 0; }
-  }
 
   @media (max-width: 880px) {
     section { padding: 60px 0; }
@@ -587,53 +559,11 @@
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
             <span>Dados do cartão</span>
           </div>
-          <form id="form-checkout" class="form-cartao">
-            <label for="form-checkout__cardholderName">Nome como está no cartão</label>
-            <input type="text" id="form-checkout__cardholderName" autocomplete="cc-name" placeholder="Ex.: MARIA A SILVA" required>
-
-            <label>Número do cartão</label>
-            <div id="form-checkout__cardNumber" class="campo-seguro"></div>
-
-            <div class="linha-cartao">
-              <div>
-                <label>Validade</label>
-                <div class="linha-validade">
-                  <div id="form-checkout__cardExpirationMonth" class="campo-seguro"></div>
-                  <span class="separador-validade">/</span>
-                  <div id="form-checkout__cardExpirationYear" class="campo-seguro"></div>
-                </div>
-              </div>
-              <div>
-                <label>CVV</label>
-                <div id="form-checkout__securityCode" class="campo-seguro campo-cvv"></div>
-              </div>
-            </div>
-
-            <div class="linha-cartao linha-documento">
-              <div>
-                <label for="form-checkout__identificationType">Documento</label>
-                <select id="form-checkout__identificationType"></select>
-              </div>
-              <div>
-                <label for="form-checkout__identificationNumber">Número do documento</label>
-                <input type="text" id="form-checkout__identificationNumber" autocomplete="off" placeholder="000.000.000-00" required>
-              </div>
-            </div>
-
-            <label for="form-checkout__issuer">Banco emissor</label>
-            <select id="form-checkout__issuer"></select>
-
-            <input type="hidden" id="form-checkout__cardholderEmail">
-
-            <button type="submit" class="botao botao-pagamento" id="botao-pagar-cartao">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 1 1 8 0v3"/></svg>
-              <span id="texto-botao-pagar">Confirmar assinatura</span>
-            </button>
-            <p class="nota-seguranca">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 1 1 8 0v3"/></svg>
-              Pagamento processado com segurança pelo Mercado Pago — os dados do seu cartão não passam pelos nossos servidores.
-            </p>
-          </form>
+          <div id="mp-card-brick-container"></div>
+          <p class="nota-seguranca">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 1 1 8 0v3"/></svg>
+            Pagamento processado com segurança pelo Mercado Pago — os dados do seu cartão não passam pelos nossos servidores.
+          </p>
         </div>
         <p class="erro-painel" id="erro-comprar"></p>
       </div>
@@ -682,7 +612,7 @@
   async function abrir() {
     veu.hidden = false;
     if (token()) {
-      try { await carregarConta(); mostrar("conta"); inicializarCardForm(); }
+      try { await carregarConta(); mostrar("conta"); renderizarBrickCartao(); }
       catch { limparToken(); mostrar("entrar"); }
     } else {
       mostrar("entrar");
@@ -720,7 +650,7 @@
       guardarToken(dados.token);
       await carregarConta();
       mostrar("conta");
-      inicializarCardForm();
+      renderizarBrickCartao();
     } catch (err) {
       erroEl.textContent = err.message;
     } finally {
@@ -745,7 +675,7 @@
       guardarToken(dados.token);
       await carregarConta();
       mostrar("conta");
-      inicializarCardForm();
+      renderizarBrickCartao();
     } catch (err) {
       erroEl.textContent = err.message;
     } finally {
@@ -806,73 +736,67 @@
     radio.addEventListener("change", () => {
       document.querySelectorAll(".opcao-plano").forEach(op => op.classList.toggle("ativa", op.contains(radio) && radio.checked));
       document.getElementById("total-compra").textContent = PRECOS[radio.value];
+      renderizarBrickCartao();
     });
   });
 
   // Assinatura vinculada a plano precisa nascer já com o cartão tokenizado
   // (o Mercado Pago não tem checkout hospedado pra esse tipo de assinatura).
-  // Usamos o CardForm — o formulário que a própria documentação do Mercado
-  // Pago indica especificamente para Assinaturas (diferente do Payment
-  // Brick, feito para pagamentos avulsos com parcelamento). Os campos de
-  // número, validade e CVV ficam dentro de iframes seguros deles — o
-  // número do cartão nunca passa pelo nosso backend.
-  let cardForm = null;
-  function inicializarCardForm() {
-    if (!window.MercadoPago || !document.getElementById("form-checkout")) return;
-    document.getElementById("form-checkout__cardholderEmail").value = (window.__usuarioLogado || {}).email || "";
+  // O Brick abaixo coleta os dados do cartão com segurança (PCI) dentro de
+  // um iframe deles e devolve só um token — o número do cartão nunca passa
+  // pelo nosso backend.
+  let mpBrickController = null;
+  async function renderizarBrickCartao() {
+    if (!window.MercadoPago || !document.getElementById("mp-card-brick-container")) return;
+    const plano = document.querySelector('input[name="plano"]:checked').value;
+    if (mpBrickController) {
+      try { await mpBrickController.unmount(); } catch {}
+    }
     const mp = new MercadoPago(MP_PUBLIC_KEY, { locale: "pt-BR" });
-    cardForm = mp.cardForm({
-      amount: String(PRECOS_NUM[document.querySelector('input[name="plano"]:checked').value]),
-      autoMount: true,
-      form: {
-        id: "form-checkout",
-        cardholderName: { id: "form-checkout__cardholderName", placeholder: "Nome como está no cartão" },
-        cardholderEmail: { id: "form-checkout__cardholderEmail" },
-        cardNumber: { id: "form-checkout__cardNumber", placeholder: "Número do cartão" },
-        cardExpirationMonth: { id: "form-checkout__cardExpirationMonth", placeholder: "MM" },
-        cardExpirationYear: { id: "form-checkout__cardExpirationYear", placeholder: "AA" },
-        securityCode: { id: "form-checkout__securityCode", placeholder: "CVV" },
-        identificationType: { id: "form-checkout__identificationType" },
-        identificationNumber: { id: "form-checkout__identificationNumber", placeholder: "Número do documento" },
-        issuer: { id: "form-checkout__issuer" },
+    const bricksBuilder = mp.bricks();
+    mpBrickController = await bricksBuilder.create("payment", "mp-card-brick-container", {
+      initialization: {
+        amount: PRECOS_NUM[plano],
+        payer: { email: (window.__usuarioLogado || {}).email || "" },
+      },
+      customization: {
+        paymentMethods: {
+          creditCard: "all",
+          debitCard: "all",
+          bankTransfer: "",   // desativa Pix — não gera card_token_id, não serve pra assinatura
+          ticket: "",         // desativa boleto — mesmo motivo
+          maxInstallments: 1,
+        },
       },
       callbacks: {
-        onFormMounted: (error) => {
-          if (error) {
-            document.getElementById("erro-comprar").textContent =
-              "Não foi possível carregar o formulário de cartão. Recarregue a página.";
-          }
+        onReady: () => {},
+        onError: () => {
+          document.getElementById("erro-comprar").textContent =
+            "Não foi possível carregar o formulário de pagamento. Recarregue a página.";
         },
-        onSubmit: (event) => {
-          event.preventDefault();
+        onSubmit: ({ formData }) => new Promise(async (resolve, reject) => {
           const erroEl = document.getElementById("erro-comprar");
-          const botao = document.getElementById("botao-pagar-cartao");
-          const textoBotao = document.getElementById("texto-botao-pagar");
           erroEl.style.color = "";
           erroEl.textContent = "";
-          botao.disabled = true;
-          textoBotao.textContent = "Processando…";
-          const dadosCartao = cardForm.getCardFormData();
-          const plano = document.querySelector('input[name="plano"]:checked').value;
-          chamarApi("/api/assinar", {
-            method: "POST",
-            body: JSON.stringify({
-              plano,
-              card_token_id: dadosCartao.token,
-              device_id: window.MP_DEVICE_SESSION_ID || "",
-            }),
-          }).then(async () => {
+          try {
+            await chamarApi("/api/assinar", {
+              method: "POST",
+              body: JSON.stringify({
+                plano,
+                card_token_id: formData.token,
+                device_id: window.MP_DEVICE_SESSION_ID || "",
+              }),
+            });
             erroEl.style.color = "#0E7A46";
             erroEl.textContent = "Assinatura ativada! O código de ativação chega por e-mail em instantes.";
             await carregarConta();
-          }).catch((err) => {
+            resolve();
+          } catch (err) {
             erroEl.style.color = "#C62828";
             erroEl.textContent = err.message;
-          }).finally(() => {
-            botao.disabled = false;
-            textoBotao.textContent = "Confirmar assinatura";
-          });
-        },
+            reject();
+          }
+        }),
       },
     });
   }
