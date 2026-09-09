@@ -529,6 +529,9 @@
 
       <div class="lista-assinaturas" id="lista-assinaturas"></div>
       <p class="vazio-painel" id="sem-assinatura" hidden>Você ainda não tem nenhuma assinatura ativa.</p>
+      <div class="acoes-painel" id="bloco-download" hidden>
+        <a class="botao" id="link-download" href="/SolucoesFiscais.exe" download>Baixar o programa</a>
+      </div>
 
       <label style="margin-top:20px" for="plano-escolha">Assinar / renovar</label>
       <label class="opcao-plano ativa"><input type="radio" name="plano" value="essencial" checked>
@@ -684,6 +687,9 @@
         listaEl.appendChild(item);
       });
     }
+
+    const temAssinaturaEmDia = dados.assinaturas.some(a => a.em_dia);
+    document.getElementById("bloco-download").hidden = !temAssinaturaEmDia;
 
     const tabelaEl = document.getElementById("tabela-historico");
     if (dados.pagamentos.length === 0) {
