@@ -211,18 +211,48 @@
   .historico th { color: var(--grafite); font-weight: 600; }
   .vazio-painel { color: var(--grafite); font-size: 13.5px; margin-top: 10px; }
   .painel-scroll { max-height: 75vh; overflow-y: auto; }
-  .form-cartao label { display: block; margin-top: 14px; font-size: 13.5px; font-weight: 600; color: var(--grafite); }
-  .form-cartao select {
-    width: 100%; margin-top: 6px; padding: 11px 12px; font: inherit; font-size: 15px;
-    border: 1.5px solid var(--linha); border-radius: 7px; background: var(--papel); color: var(--tinta);
+  .cartao-pagamento {
+    background: var(--branco); border: 1.5px solid var(--linha); border-radius: 12px;
+    padding: 20px; box-shadow: 0 1px 3px rgba(13, 27, 46, .06);
   }
+  .cartao-pagamento-topo {
+    display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 15px;
+    color: var(--tinta); padding-bottom: 14px; margin-bottom: 4px; border-bottom: 1px solid var(--linha);
+  }
+  .cartao-pagamento-topo svg { color: var(--verde); flex-shrink: 0; }
+  .form-cartao label { display: block; margin-top: 14px; font-size: 13px; font-weight: 600; color: var(--grafite); }
+  .form-cartao select {
+    width: 100%; margin-top: 6px; padding: 11px 34px 11px 12px; font: inherit; font-size: 15px;
+    border: 1.5px solid var(--linha); border-radius: 7px; background: var(--papel) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5L6 6.5L11 1.5" stroke="%233A4A5F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat right 12px center;
+    color: var(--tinta); appearance: none; -webkit-appearance: none;
+  }
+  .form-cartao select:focus-visible { outline: 3px solid var(--gelo); border-color: var(--verde); }
   .campo-seguro {
     width: 100%; margin-top: 6px; padding: 11px 12px; height: 44px; box-sizing: border-box;
     border: 1.5px solid var(--linha); border-radius: 7px; background: var(--papel);
+    transition: border-color .15s, box-shadow .15s;
   }
+  .campo-seguro:focus-within { border-color: var(--verde); box-shadow: 0 0 0 3px var(--gelo); }
   .campo-seguro iframe { height: 100% !important; }
-  .linha-cartao { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .linha-cartao { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; margin-top: 14px; }
+  .linha-documento { grid-template-columns: 1fr 1.6fr; }
   .linha-cartao label { margin-top: 0; }
+  .linha-validade { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; }
+  .separador-validade { margin-top: 6px; color: var(--grafite); font-weight: 600; }
+  .campo-cvv { max-width: 100px; }
+  .botao-pagamento {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 9px;
+    margin-top: 20px; padding: 13px; font-size: 15.5px;
+  }
+  .botao-pagamento:disabled { opacity: .65; cursor: default; }
+  .nota-seguranca {
+    display: flex; align-items: flex-start; gap: 6px; margin-top: 12px;
+    font-size: 12px; line-height: 1.5; color: var(--grafite);
+  }
+  .nota-seguranca svg { flex-shrink: 0; margin-top: 1px; color: var(--verde); }
+  @media (max-width: 420px) {
+    .linha-cartao { grid-template-columns: 1fr; gap: 0; }
+  }
 
   @media (max-width: 880px) {
     section { padding: 60px 0; }
@@ -552,43 +582,59 @@
         <span><strong>Escritório — R$ 490/mês</strong><small>até 10 CNPJs</small></span></label>
       <div class="resumo-compra"><span>Total mensal</span><span id="total-compra">R$ 1,00</span></div>
       <div class="acoes-painel">
-        <form id="form-checkout" class="form-cartao">
-          <label for="form-checkout__cardholderName">Nome como está no cartão</label>
-          <input type="text" id="form-checkout__cardholderName" autocomplete="cc-name" required>
-
-          <label>Número do cartão</label>
-          <div id="form-checkout__cardNumber" class="campo-seguro"></div>
-
-          <div class="linha-cartao">
-            <div>
-              <label>Mês</label>
-              <div id="form-checkout__cardExpirationMonth" class="campo-seguro"></div>
-            </div>
-            <div>
-              <label>Ano</label>
-              <div id="form-checkout__cardExpirationYear" class="campo-seguro"></div>
-            </div>
-            <div>
-              <label>CVV</label>
-              <div id="form-checkout__securityCode" class="campo-seguro"></div>
-            </div>
+        <div class="cartao-pagamento">
+          <div class="cartao-pagamento-topo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+            <span>Dados do cartão</span>
           </div>
+          <form id="form-checkout" class="form-cartao">
+            <label for="form-checkout__cardholderName">Nome como está no cartão</label>
+            <input type="text" id="form-checkout__cardholderName" autocomplete="cc-name" placeholder="Ex.: MARIA A SILVA" required>
 
-          <label for="form-checkout__issuer">Banco emissor</label>
-          <select id="form-checkout__issuer"></select>
+            <label>Número do cartão</label>
+            <div id="form-checkout__cardNumber" class="campo-seguro"></div>
 
-          <label for="form-checkout__identificationType">Tipo de documento</label>
-          <select id="form-checkout__identificationType"></select>
+            <div class="linha-cartao">
+              <div>
+                <label>Validade</label>
+                <div class="linha-validade">
+                  <div id="form-checkout__cardExpirationMonth" class="campo-seguro"></div>
+                  <span class="separador-validade">/</span>
+                  <div id="form-checkout__cardExpirationYear" class="campo-seguro"></div>
+                </div>
+              </div>
+              <div>
+                <label>CVV</label>
+                <div id="form-checkout__securityCode" class="campo-seguro campo-cvv"></div>
+              </div>
+            </div>
 
-          <label for="form-checkout__identificationNumber">Número do documento (CPF)</label>
-          <input type="text" id="form-checkout__identificationNumber" autocomplete="off" required>
+            <div class="linha-cartao linha-documento">
+              <div>
+                <label for="form-checkout__identificationType">Documento</label>
+                <select id="form-checkout__identificationType"></select>
+              </div>
+              <div>
+                <label for="form-checkout__identificationNumber">Número do documento</label>
+                <input type="text" id="form-checkout__identificationNumber" autocomplete="off" placeholder="000.000.000-00" required>
+              </div>
+            </div>
 
-          <input type="hidden" id="form-checkout__cardholderEmail">
+            <label for="form-checkout__issuer">Banco emissor</label>
+            <select id="form-checkout__issuer"></select>
 
-          <div class="acoes-painel" style="margin-top:18px">
-            <button type="submit" class="botao" id="botao-pagar-cartao">Assinar agora</button>
-          </div>
-        </form>
+            <input type="hidden" id="form-checkout__cardholderEmail">
+
+            <button type="submit" class="botao botao-pagamento" id="botao-pagar-cartao">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 1 1 8 0v3"/></svg>
+              <span id="texto-botao-pagar">Confirmar assinatura</span>
+            </button>
+            <p class="nota-seguranca">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 1 1 8 0v3"/></svg>
+              Pagamento processado com segurança pelo Mercado Pago — os dados do seu cartão não passam pelos nossos servidores.
+            </p>
+          </form>
+        </div>
         <p class="erro-painel" id="erro-comprar"></p>
       </div>
 
@@ -801,10 +847,11 @@
           event.preventDefault();
           const erroEl = document.getElementById("erro-comprar");
           const botao = document.getElementById("botao-pagar-cartao");
+          const textoBotao = document.getElementById("texto-botao-pagar");
           erroEl.style.color = "";
           erroEl.textContent = "";
           botao.disabled = true;
-          botao.textContent = "Processando…";
+          textoBotao.textContent = "Processando…";
           const dadosCartao = cardForm.getCardFormData();
           const plano = document.querySelector('input[name="plano"]:checked').value;
           chamarApi("/api/assinar", {
@@ -823,7 +870,7 @@
             erroEl.textContent = err.message;
           }).finally(() => {
             botao.disabled = false;
-            botao.textContent = "Assinar agora";
+            textoBotao.textContent = "Confirmar assinatura";
           });
         },
       },
