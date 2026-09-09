@@ -211,6 +211,18 @@
   .historico th { color: var(--grafite); font-weight: 600; }
   .vazio-painel { color: var(--grafite); font-size: 13.5px; margin-top: 10px; }
   .painel-scroll { max-height: 75vh; overflow-y: auto; }
+  .form-cartao label { display: block; margin-top: 14px; font-size: 13.5px; font-weight: 600; color: var(--grafite); }
+  .form-cartao select {
+    width: 100%; margin-top: 6px; padding: 11px 12px; font: inherit; font-size: 15px;
+    border: 1.5px solid var(--linha); border-radius: 7px; background: var(--papel); color: var(--tinta);
+  }
+  .campo-seguro {
+    width: 100%; margin-top: 6px; padding: 11px 12px; height: 44px; box-sizing: border-box;
+    border: 1.5px solid var(--linha); border-radius: 7px; background: var(--papel);
+  }
+  .campo-seguro iframe { height: 100% !important; }
+  .linha-cartao { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .linha-cartao label { margin-top: 0; }
 
   @media (max-width: 880px) {
     section { padding: 60px 0; }
@@ -540,7 +552,43 @@
         <span><strong>Escritório — R$ 490/mês</strong><small>até 10 CNPJs</small></span></label>
       <div class="resumo-compra"><span>Total mensal</span><span id="total-compra">R$ 1,00</span></div>
       <div class="acoes-painel">
-        <div id="mp-card-brick-container"></div>
+        <form id="form-checkout" class="form-cartao">
+          <label for="form-checkout__cardholderName">Nome como está no cartão</label>
+          <input type="text" id="form-checkout__cardholderName" autocomplete="cc-name" required>
+
+          <label>Número do cartão</label>
+          <div id="form-checkout__cardNumber" class="campo-seguro"></div>
+
+          <div class="linha-cartao">
+            <div>
+              <label>Mês</label>
+              <div id="form-checkout__cardExpirationMonth" class="campo-seguro"></div>
+            </div>
+            <div>
+              <label>Ano</label>
+              <div id="form-checkout__cardExpirationYear" class="campo-seguro"></div>
+            </div>
+            <div>
+              <label>CVV</label>
+              <div id="form-checkout__securityCode" class="campo-seguro"></div>
+            </div>
+          </div>
+
+          <label for="form-checkout__issuer">Banco emissor</label>
+          <select id="form-checkout__issuer"></select>
+
+          <label for="form-checkout__identificationType">Tipo de documento</label>
+          <select id="form-checkout__identificationType"></select>
+
+          <label for="form-checkout__identificationNumber">Número do documento (CPF)</label>
+          <input type="text" id="form-checkout__identificationNumber" autocomplete="off" required>
+
+          <input type="hidden" id="form-checkout__cardholderEmail">
+
+          <div class="acoes-painel" style="margin-top:18px">
+            <button type="submit" class="botao" id="botao-pagar-cartao">Assinar agora</button>
+          </div>
+        </form>
         <p class="erro-painel" id="erro-comprar"></p>
       </div>
 
@@ -588,7 +636,7 @@
   async function abrir() {
     veu.hidden = false;
     if (token()) {
-      try { await carregarConta(); mostrar("conta"); renderizarBrickCartao(); }
+      try { await carregarConta(); mostrar("conta"); inicializarCardForm(); }
       catch { limparToken(); mostrar("entrar"); }
     } else {
       mostrar("entrar");
@@ -626,7 +674,7 @@
       guardarToken(dados.token);
       await carregarConta();
       mostrar("conta");
-      renderizarBrickCartao();
+      inicializarCardForm();
     } catch (err) {
       erroEl.textContent = err.message;
     } finally {
@@ -651,7 +699,7 @@
       guardarToken(dados.token);
       await carregarConta();
       mostrar("conta");
-      renderizarBrickCartao();
+      inicializarCardForm();
     } catch (err) {
       erroEl.textContent = err.message;
     } finally {
@@ -706,77 +754,78 @@
   // MP_PLANO_ESSENCIAL_ID no Render), troque também o valor "essencial"
   // aqui pra 1.00 e "R$ 1,00" — só pra exibição ficar consistente com o
   // teste. Lembre de reverter os dois juntos depois.
-  // ATENÇÃO: esta é a versão de TESTE — plano "essencial" apontando pro
-  // plano de R$1 (preapproval_plan_id e93e5a7da04b4a288096a4f4fb0c7a4f no
-  // MP_PLANO_ESSENCIAL_ID do Render). Não deixe esta versão publicada por
-  // muito tempo — troque pela index-real.html depois do teste.
   const PRECOS = { essencial: "R$ 1,00", escritorio: "R$ 490,00" };
   const PRECOS_NUM = { essencial: 1.00, escritorio: 490.00 };
   document.querySelectorAll('input[name="plano"]').forEach(radio => {
     radio.addEventListener("change", () => {
       document.querySelectorAll(".opcao-plano").forEach(op => op.classList.toggle("ativa", op.contains(radio) && radio.checked));
       document.getElementById("total-compra").textContent = PRECOS[radio.value];
-      renderizarBrickCartao();
     });
   });
 
   // Assinatura vinculada a plano precisa nascer já com o cartão tokenizado
   // (o Mercado Pago não tem checkout hospedado pra esse tipo de assinatura).
-  // O Brick abaixo coleta os dados do cartão com segurança (PCI) dentro de
-  // um iframe deles e devolve só um token — o número do cartão nunca passa
-  // pelo nosso backend.
-  let mpBrickController = null;
-  async function renderizarBrickCartao() {
-    if (!window.MercadoPago || !document.getElementById("mp-card-brick-container")) return;
-    const plano = document.querySelector('input[name="plano"]:checked').value;
-    if (mpBrickController) {
-      try { await mpBrickController.unmount(); } catch {}
-    }
+  // Usamos o CardForm — o formulário que a própria documentação do Mercado
+  // Pago indica especificamente para Assinaturas (diferente do Payment
+  // Brick, feito para pagamentos avulsos com parcelamento). Os campos de
+  // número, validade e CVV ficam dentro de iframes seguros deles — o
+  // número do cartão nunca passa pelo nosso backend.
+  let cardForm = null;
+  function inicializarCardForm() {
+    if (!window.MercadoPago || !document.getElementById("form-checkout")) return;
+    document.getElementById("form-checkout__cardholderEmail").value = (window.__usuarioLogado || {}).email || "";
     const mp = new MercadoPago(MP_PUBLIC_KEY, { locale: "pt-BR" });
-    const bricksBuilder = mp.bricks();
-    mpBrickController = await bricksBuilder.create("payment", "mp-card-brick-container", {
-      initialization: {
-        amount: PRECOS_NUM[plano],
-        payer: { email: (window.__usuarioLogado || {}).email || "" },
-      },
-      customization: {
-        paymentMethods: {
-          creditCard: "all",
-          debitCard: "all",
-          bankTransfer: "",   // desativa Pix — não gera card_token_id, não serve pra assinatura
-          ticket: "",         // desativa boleto — mesmo motivo
-          maxInstallments: 1,
-        },
+    cardForm = mp.cardForm({
+      amount: String(PRECOS_NUM[document.querySelector('input[name="plano"]:checked').value]),
+      autoMount: true,
+      form: {
+        id: "form-checkout",
+        cardholderName: { id: "form-checkout__cardholderName", placeholder: "Nome como está no cartão" },
+        cardholderEmail: { id: "form-checkout__cardholderEmail" },
+        cardNumber: { id: "form-checkout__cardNumber", placeholder: "Número do cartão" },
+        cardExpirationMonth: { id: "form-checkout__cardExpirationMonth", placeholder: "MM" },
+        cardExpirationYear: { id: "form-checkout__cardExpirationYear", placeholder: "AA" },
+        securityCode: { id: "form-checkout__securityCode", placeholder: "CVV" },
+        identificationType: { id: "form-checkout__identificationType" },
+        identificationNumber: { id: "form-checkout__identificationNumber", placeholder: "Número do documento" },
+        issuer: { id: "form-checkout__issuer" },
       },
       callbacks: {
-        onReady: () => {},
-        onError: () => {
-          document.getElementById("erro-comprar").textContent =
-            "Não foi possível carregar o formulário de pagamento. Recarregue a página.";
+        onFormMounted: (error) => {
+          if (error) {
+            document.getElementById("erro-comprar").textContent =
+              "Não foi possível carregar o formulário de cartão. Recarregue a página.";
+          }
         },
-        onSubmit: ({ formData }) => new Promise(async (resolve, reject) => {
+        onSubmit: (event) => {
+          event.preventDefault();
           const erroEl = document.getElementById("erro-comprar");
+          const botao = document.getElementById("botao-pagar-cartao");
           erroEl.style.color = "";
           erroEl.textContent = "";
-          try {
-            await chamarApi("/api/assinar", {
-              method: "POST",
-              body: JSON.stringify({
-                plano,
-                card_token_id: formData.token,
-                device_id: window.MP_DEVICE_SESSION_ID || "",
-              }),
-            });
+          botao.disabled = true;
+          botao.textContent = "Processando…";
+          const dadosCartao = cardForm.getCardFormData();
+          const plano = document.querySelector('input[name="plano"]:checked').value;
+          chamarApi("/api/assinar", {
+            method: "POST",
+            body: JSON.stringify({
+              plano,
+              card_token_id: dadosCartao.token,
+              device_id: window.MP_DEVICE_SESSION_ID || "",
+            }),
+          }).then(async () => {
             erroEl.style.color = "#0E7A46";
             erroEl.textContent = "Assinatura ativada! O código de ativação chega por e-mail em instantes.";
             await carregarConta();
-            resolve();
-          } catch (err) {
+          }).catch((err) => {
             erroEl.style.color = "#C62828";
             erroEl.textContent = err.message;
-            reject();
-          }
-        }),
+          }).finally(() => {
+            botao.disabled = false;
+            botao.textContent = "Assinar agora";
+          });
+        },
       },
     });
   }
