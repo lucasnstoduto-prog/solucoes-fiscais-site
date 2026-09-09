@@ -885,19 +885,22 @@
 
   async function aguardarConfirmacaoPix(paymentId) {
     const statusEl = document.getElementById("pix-status");
-    for (let i = 0; i < 40; i++) {
-      await new Promise((r) => setTimeout(r, 10000)); // checa a cada 10s, por ~7 minutos
+    for (let i = 0; i < 60; i++) {
       try {
-        const conta = await chamarApi("/api/minha-conta");
-        const pago = conta.pagamentos.find(
-          (p) => String(p.payment_id) === String(paymentId) && p.status === "approved"
-        );
-        if (pago) {
+        const resultado = await chamarApi(`/api/status-pagamento/${paymentId}`);
+        if (resultado.status === "approved") {
           statusEl.style.color = "#0E7A46";
           statusEl.textContent = "Pagamento confirmado! O código de ativação chega por e-mail em instantes.";
+          await carregarConta();
+          return;
+        }
+        if (resultado.status === "rejected" || resultado.status === "cancelled") {
+          statusEl.style.color = "#C62828";
+          statusEl.textContent = "Pagamento não aprovado. Gere um novo QR Code pra tentar de novo.";
           return;
         }
       } catch { /* tenta de novo na próxima rodada */ }
+      await new Promise((r) => setTimeout(r, 3000)); // checa a cada 3s, por ~3 minutos
     }
     statusEl.textContent = "Ainda não identificamos o pagamento. Se já pagou, aguarde mais um pouco ou atualize a página.";
   }
