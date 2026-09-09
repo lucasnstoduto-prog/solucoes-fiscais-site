@@ -535,10 +535,10 @@
 
       <label style="margin-top:20px" for="plano-escolha">Assinar / renovar</label>
       <label class="opcao-plano ativa"><input type="radio" name="plano" value="essencial" checked>
-        <span><strong>Essencial — R$ 149/mês</strong><small>1 CNPJ</small></span></label>
+        <span><strong>Essencial — R$ 1/mês (TESTE)</strong><small>1 CNPJ</small></span></label>
       <label class="opcao-plano"><input type="radio" name="plano" value="escritorio">
         <span><strong>Escritório — R$ 490/mês</strong><small>até 10 CNPJs</small></span></label>
-      <div class="resumo-compra"><span>Total mensal</span><span id="total-compra">R$ 149,00</span></div>
+      <div class="resumo-compra"><span>Total mensal</span><span id="total-compra">R$ 1,00</span></div>
       <div class="acoes-painel">
         <div id="mp-card-brick-container"></div>
         <p class="erro-painel" id="erro-comprar"></p>
@@ -702,8 +702,16 @@
     }
   }
 
-  const PRECOS = { essencial: "R$ 149,00", escritorio: "R$ 490,00" };
-  const PRECOS_NUM = { essencial: 149.00, escritorio: 490.00 };
+  // ATENÇÃO: se estiver testando com o plano temporário de R$1 (trocou
+  // MP_PLANO_ESSENCIAL_ID no Render), troque também o valor "essencial"
+  // aqui pra 1.00 e "R$ 1,00" — só pra exibição ficar consistente com o
+  // teste. Lembre de reverter os dois juntos depois.
+  // ATENÇÃO: esta é a versão de TESTE — plano "essencial" apontando pro
+  // plano de R$1 (preapproval_plan_id e93e5a7da04b4a288096a4f4fb0c7a4f no
+  // MP_PLANO_ESSENCIAL_ID do Render). Não deixe esta versão publicada por
+  // muito tempo — troque pela index-real.html depois do teste.
+  const PRECOS = { essencial: "R$ 1,00", escritorio: "R$ 490,00" };
+  const PRECOS_NUM = { essencial: 1.00, escritorio: 490.00 };
   document.querySelectorAll('input[name="plano"]').forEach(radio => {
     radio.addEventListener("change", () => {
       document.querySelectorAll(".opcao-plano").forEach(op => op.classList.toggle("ativa", op.contains(radio) && radio.checked));
