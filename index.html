@@ -393,7 +393,7 @@
     <div class="grade-planos">
       <div class="plano">
         <h3>Essencial</h3>
-        <p class="preco">R$ 149<small> /mês · 1 CNPJ</small></p>
+        <p class="preco"><span id="preco-vitrine-essencial">R$ 149</span><small> /mês · 1 CNPJ</small></p>
         <ul>
           <li>Captura automática diária de NFS-e</li>
           <li>XML + PDF DANFSe v2.0 organizados</li>
@@ -405,7 +405,7 @@
       <div class="plano destaque">
         <span class="selo">Mais escolhido</span>
         <h3>Escritório</h3>
-        <p class="preco">R$ 490<small> /mês · até 10 CNPJs</small></p>
+        <p class="preco"><span id="preco-vitrine-escritorio">R$ 490</span><small> /mês · até 10 CNPJs</small></p>
         <ul>
           <li>Tudo do Essencial, para até 10 CNPJs</li>
           <li>Certificados ilimitados no mesmo computador</li>
@@ -585,10 +585,10 @@
 
       <label style="margin-top:20px" for="plano-escolha">Assinar / renovar</label>
       <label class="opcao-plano ativa"><input type="radio" name="plano" value="essencial" checked>
-        <span><strong>Essencial — R$ 1/mês (TESTE)</strong><small>1 CNPJ</small></span></label>
+        <span><strong id="preco-radio-essencial">Essencial — R$ 149/mês</strong><small>1 CNPJ</small></span></label>
       <label class="opcao-plano"><input type="radio" name="plano" value="escritorio">
-        <span><strong>Escritório — R$ 490/mês</strong><small>até 10 CNPJs</small></span></label>
-      <div class="resumo-compra"><span>Total mensal</span><span id="total-compra">R$ 1,00</span></div>
+        <span><strong id="preco-radio-escritorio">Escritório — R$ 490/mês</strong><small>até 10 CNPJs</small></span></label>
+      <div class="resumo-compra"><span>Total mensal</span><span id="total-compra">R$ 149,00</span></div>
       <div class="acoes-painel">
         <!-- Cartão temporariamente desativado (aguardando resolver erro
              guest_site_mismatch com o Mercado Pago) — reative removendo o
@@ -907,12 +907,39 @@
     }
   }
 
-  // ATENÇÃO: se estiver testando com o plano temporário de R$1 (trocou
-  // MP_PLANO_ESSENCIAL_ID no Render), troque também o valor "essencial"
-  // aqui pra 1.00 e "R$ 1,00" — só pra exibição ficar consistente com o
-  // teste. Lembre de reverter os dois juntos depois.
-  const PRECOS = { essencial: "R$ 1,00", escritorio: "R$ 490,00" };
-  const PRECOS_NUM = { essencial: 1.00, escritorio: 490.00 };
+  // Preços buscados do backend (rota pública /api/precos) — mudar
+  // PRECO_PIX_ESSENCIAL / PRECO_PIX_ESCRITORIO no Render já atualiza aqui
+  // sozinho, sem precisar editar este arquivo.
+  let PRECOS_NUM = { essencial: 149.00, escritorio: 490.00 };  // valores de reserva até a busca terminar
+  let PRECOS = { essencial: "R$ 149,00", escritorio: "R$ 490,00" };
+
+  function formatarReal(valor) {
+    return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  async function carregarPrecos() {
+    try {
+      const resposta = await fetch(`${API_BASE}/api/precos`);
+      const dados = await resposta.json();
+      if (!dados.essencial || !dados.escritorio) return;
+      PRECOS_NUM = dados;
+      PRECOS = { essencial: formatarReal(dados.essencial), escritorio: formatarReal(dados.escritorio) };
+
+      document.getElementById("preco-vitrine-essencial").textContent =
+        dados.essencial.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
+      document.getElementById("preco-vitrine-escritorio").textContent =
+        dados.escritorio.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
+      document.getElementById("preco-radio-essencial").textContent = `Essencial — ${PRECOS.essencial}/mês`;
+      document.getElementById("preco-radio-escritorio").textContent = `Escritório — ${PRECOS.escritorio}/mês`;
+
+      const planoSelecionado = document.querySelector('input[name="plano"]:checked');
+      if (planoSelecionado) document.getElementById("total-compra").textContent = PRECOS[planoSelecionado.value];
+    } catch {
+      // sem internet ou backend fora do ar — mantém os valores de reserva acima
+    }
+  }
+  carregarPrecos();
+
   document.querySelectorAll('input[name="plano"]').forEach(radio => {
     radio.addEventListener("change", () => {
       document.querySelectorAll(".opcao-plano").forEach(op => op.classList.toggle("ativa", op.contains(radio) && radio.checked));
