@@ -559,7 +559,11 @@
         <span><strong>Escritório — R$ 490/mês</strong><small>até 10 CNPJs</small></span></label>
       <div class="resumo-compra"><span>Total mensal</span><span id="total-compra">R$ 1,00</span></div>
       <div class="acoes-painel">
-        <div class="cartao-pagamento">
+        <!-- Cartão temporariamente desativado (aguardando resolver erro
+             guest_site_mismatch com o Mercado Pago) — reative removendo o
+             atributo hidden abaixo e a chamada de renderizarBrickCartao
+             comentada mais adiante no código. -->
+        <div class="cartao-pagamento" hidden>
           <div class="cartao-pagamento-topo">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
             <span>Dados do cartão</span>
@@ -648,7 +652,7 @@
   async function abrir() {
     veu.hidden = false;
     if (token()) {
-      try { await carregarConta(); mostrar("conta"); renderizarBrickCartao(); }
+      try { await carregarConta(); mostrar("conta"); /* renderizarBrickCartao() desativado — só Pix por enquanto */ }
       catch { limparToken(); mostrar("entrar"); }
     } else {
       mostrar("entrar");
@@ -686,7 +690,7 @@
       guardarToken(dados.token);
       await carregarConta();
       mostrar("conta");
-      renderizarBrickCartao();
+      // renderizarBrickCartao(); // desativado — só Pix por enquanto
     } catch (err) {
       erroEl.textContent = err.message;
     } finally {
@@ -711,7 +715,7 @@
       guardarToken(dados.token);
       await carregarConta();
       mostrar("conta");
-      renderizarBrickCartao();
+      // renderizarBrickCartao(); // desativado — só Pix por enquanto
     } catch (err) {
       erroEl.textContent = err.message;
     } finally {
@@ -772,7 +776,7 @@
     radio.addEventListener("change", () => {
       document.querySelectorAll(".opcao-plano").forEach(op => op.classList.toggle("ativa", op.contains(radio) && radio.checked));
       document.getElementById("total-compra").textContent = PRECOS[radio.value];
-      renderizarBrickCartao();
+      // renderizarBrickCartao(); // desativado — só Pix por enquanto
     });
   });
 
