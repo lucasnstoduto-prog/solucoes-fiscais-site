@@ -761,7 +761,11 @@
           try {
             await chamarApi("/api/assinar", {
               method: "POST",
-              body: JSON.stringify({ plano, card_token_id: formData.token }),
+              body: JSON.stringify({
+                plano,
+                card_token_id: formData.token,
+                device_id: window.MP_DEVICE_SESSION_ID || "",
+              }),
             });
             erroEl.style.color = "#0E7A46";
             erroEl.textContent = "Assinatura ativada! O código de ativação chega por e-mail em instantes.";
