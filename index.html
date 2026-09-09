@@ -737,7 +737,16 @@
     const listaEl = document.getElementById("lista-assinaturas");
     const semEl = document.getElementById("sem-assinatura");
     listaEl.innerHTML = "";
-    if (dados.assinaturas.length === 0) {
+
+    // Considera "em dia" tanto assinatura por cartão ativa quanto um Pix
+    // aprovado nos últimos 35 dias (mesma janela de validade da chave).
+    const pagamentoPixRecente = dados.pagamentos.find((p) => {
+      if (p.status !== "approved") return false;
+      const dias = (Date.now() - new Date(p.processado_em).getTime()) / 86400000;
+      return dias <= 35;
+    });
+
+    if (dados.assinaturas.length === 0 && !pagamentoPixRecente) {
       semEl.hidden = false;
     } else {
       semEl.hidden = true;
@@ -750,9 +759,17 @@
           <span class="badge-status ${classe}">${rotulo}</span>`;
         listaEl.appendChild(item);
       });
+      if (pagamentoPixRecente) {
+        const item = document.createElement("div");
+        item.className = "item-assinatura";
+        item.innerHTML = `<div><strong>Pix (pagamento avulso)</strong>
+          <small>pago em ${pagamentoPixRecente.processado_em} — não renova sozinho</small></div>
+          <span class="badge-status emdia">Em dia</span>`;
+        listaEl.appendChild(item);
+      }
     }
 
-    const temAssinaturaEmDia = dados.assinaturas.some(a => a.em_dia);
+    const temAssinaturaEmDia = dados.assinaturas.some(a => a.em_dia) || Boolean(pagamentoPixRecente);
     document.getElementById("bloco-download").hidden = !temAssinaturaEmDia;
 
     const tabelaEl = document.getElementById("tabela-historico");
