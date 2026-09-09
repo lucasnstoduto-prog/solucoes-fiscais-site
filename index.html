@@ -726,7 +726,13 @@
         payer: { email: (window.__usuarioLogado || {}).email || "" },
       },
       customization: {
-        paymentMethods: { creditCard: "all", debitCard: "all", maxInstallments: 1 },
+        paymentMethods: {
+          creditCard: "all",
+          debitCard: "all",
+          bankTransfer: "",   // desativa Pix — não gera card_token_id, não serve pra assinatura
+          ticket: "",         // desativa boleto — mesmo motivo
+          maxInstallments: 1,
+        },
       },
       callbacks: {
         onReady: () => {},
