@@ -550,6 +550,15 @@
       <p class="vazio-painel" id="sem-assinatura" hidden>Você ainda não tem nenhuma assinatura ativa.</p>
       <div class="acoes-painel" id="bloco-download" hidden>
         <a class="botao" id="link-download" href="/SolucoesFiscais.exe" download>Baixar o programa</a>
+        <p style="text-align:center;margin-top:10px">
+          <a href="#" id="abrir-reenvio" style="font-size:13px">Perdeu o código de ativação? Reenviar por e-mail</a>
+        </p>
+        <div id="form-reenvio" hidden style="margin-top:8px">
+          <label for="reenvio-email-alt" style="font-size:12.5px">Enviar para outro e-mail (opcional)</label>
+          <input type="email" id="reenvio-email-alt" placeholder="deixe em branco pra usar o e-mail da conta">
+          <button type="button" class="botao" id="confirmar-reenvio" style="width:100%;margin-top:10px">Reenviar código</button>
+        </div>
+        <p class="erro-painel" id="msg-reenvio" style="text-align:center"></p>
       </div>
 
       <label style="margin-top:20px" for="plano-escolha">Assinar / renovar</label>
@@ -672,6 +681,37 @@
     try { await chamarApi("/api/sair", { method: "POST" }); } catch {}
     limparToken();
     mostrar("entrar");
+  });
+
+  document.getElementById("abrir-reenvio").addEventListener("click", e => {
+    e.preventDefault();
+    const form = document.getElementById("form-reenvio");
+    form.hidden = !form.hidden;
+    if (!form.hidden) document.getElementById("reenvio-email-alt").focus();
+  });
+
+  document.getElementById("confirmar-reenvio").addEventListener("click", async () => {
+    const botao = document.getElementById("confirmar-reenvio");
+    const msgEl = document.getElementById("msg-reenvio");
+    const emailAlt = document.getElementById("reenvio-email-alt").value.trim();
+    msgEl.style.color = "";
+    msgEl.textContent = "";
+    botao.disabled = true;
+    botao.textContent = "Enviando…";
+    try {
+      const dados = await chamarApi("/api/reenviar-chave", {
+        method: "POST",
+        body: JSON.stringify({ email: emailAlt }),
+      });
+      msgEl.style.color = "#0E7A46";
+      msgEl.textContent = `Código reenviado para ${dados.enviado_para}!`;
+    } catch (err) {
+      msgEl.style.color = "#C62828";
+      msgEl.textContent = err.message;
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Reenviar código";
+    }
   });
 
   document.getElementById("form-entrar").addEventListener("submit", async e => {
