@@ -526,6 +526,28 @@
         <div class="acoes-painel"><button class="botao" type="submit" id="btn-entrar">Entrar</button></div>
       </form>
       <p class="alterna">Ainda não tem conta? <a href="#" id="ir-criar">Criar conta</a></p>
+      <p class="alterna"><a href="#" id="ir-esqueci" style="font-size:13px">Esqueci minha senha</a></p>
+    </div>
+
+    <div id="painel-esqueci" hidden>
+      <h3>Esqueci minha senha</h3>
+      <form id="form-esqueci">
+        <label for="esq-email">E-mail da sua conta</label>
+        <input type="email" id="esq-email" autocomplete="email" required>
+        <p class="erro-painel" id="erro-esqueci"></p>
+        <div class="acoes-painel"><button class="botao" type="submit" id="btn-esqueci">Enviar link de redefinição</button></div>
+      </form>
+      <p class="alterna"><a href="#" id="ir-entrar-de-esqueci">Voltar pro login</a></p>
+    </div>
+
+    <div id="painel-redefinir" hidden>
+      <h3>Definir nova senha</h3>
+      <form id="form-redefinir">
+        <label for="red-senha">Nova senha (mínimo 4 caracteres)</label>
+        <input type="password" id="red-senha" minlength="4" autocomplete="new-password" required>
+        <p class="erro-painel" id="erro-redefinir"></p>
+        <div class="acoes-painel"><button class="botao" type="submit" id="btn-redefinir">Salvar nova senha</button></div>
+      </form>
     </div>
 
     <div id="painel-criar" hidden>
@@ -639,7 +661,10 @@
 
   const veu = document.getElementById("veu");
   function painelEl(id) { return document.getElementById(id); }
-  const paineis = { entrar: painelEl("painel-entrar"), criar: painelEl("painel-criar"), conta: painelEl("painel-conta") };
+  const paineis = {
+    entrar: painelEl("painel-entrar"), criar: painelEl("painel-criar"), conta: painelEl("painel-conta"),
+    esqueci: painelEl("painel-esqueci"), redefinir: painelEl("painel-redefinir"),
+  };
 
   function token() { return localStorage.getItem("sf_token"); }
   function guardarToken(t) { localStorage.setItem("sf_token", t); }
@@ -660,6 +685,11 @@
 
   async function abrir() {
     veu.hidden = false;
+    const tokenRedefinicao = new URLSearchParams(window.location.search).get("resetar");
+    if (tokenRedefinicao) {
+      mostrar("redefinir");
+      return;
+    }
     if (token()) {
       try { await carregarConta(); mostrar("conta"); /* renderizarBrickCartao() desativado — só Pix por enquanto */ }
       catch { limparToken(); mostrar("entrar"); }
@@ -675,6 +705,60 @@
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !veu.hidden) fechar(); });
   document.getElementById("ir-criar").addEventListener("click", e => { e.preventDefault(); mostrar("criar"); });
   document.getElementById("ir-entrar").addEventListener("click", e => { e.preventDefault(); mostrar("entrar"); });
+  document.getElementById("ir-esqueci").addEventListener("click", e => { e.preventDefault(); mostrar("esqueci"); });
+  document.getElementById("ir-entrar-de-esqueci").addEventListener("click", e => { e.preventDefault(); mostrar("entrar"); });
+
+  document.getElementById("form-esqueci").addEventListener("submit", async e => {
+    e.preventDefault();
+    const erroEl = document.getElementById("erro-esqueci");
+    const botao = document.getElementById("btn-esqueci");
+    erroEl.style.color = "";
+    erroEl.textContent = "";
+    botao.disabled = true;
+    botao.textContent = "Enviando…";
+    try {
+      await chamarApi("/api/esqueci-senha", {
+        method: "POST",
+        body: JSON.stringify({ email: document.getElementById("esq-email").value.trim() }),
+      });
+      erroEl.style.color = "#0E7A46";
+      erroEl.textContent = "Se esse e-mail tiver uma conta, enviamos um link de redefinição. Confira sua caixa de entrada.";
+    } catch (err) {
+      erroEl.style.color = "#C62828";
+      erroEl.textContent = err.message;
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Enviar link de redefinição";
+    }
+  });
+
+  document.getElementById("form-redefinir").addEventListener("submit", async e => {
+    e.preventDefault();
+    const erroEl = document.getElementById("erro-redefinir");
+    const botao = document.getElementById("btn-redefinir");
+    const tokenRedefinicao = new URLSearchParams(window.location.search).get("resetar");
+    erroEl.style.color = "";
+    erroEl.textContent = "";
+    botao.disabled = true;
+    botao.textContent = "Salvando…";
+    try {
+      await chamarApi("/api/redefinir-senha", {
+        method: "POST",
+        body: JSON.stringify({ token: tokenRedefinicao, senha: document.getElementById("red-senha").value }),
+      });
+      erroEl.style.color = "#0E7A46";
+      erroEl.textContent = "Senha atualizada! Faça login com a senha nova.";
+      // limpa o token da URL pra não reaparecer se a pessoa atualizar a página
+      window.history.replaceState({}, "", window.location.pathname);
+      setTimeout(() => mostrar("entrar"), 1800);
+    } catch (err) {
+      erroEl.style.color = "#C62828";
+      erroEl.textContent = err.message;
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Salvar nova senha";
+    }
+  });
 
   document.getElementById("sair-conta").addEventListener("click", async e => {
     e.preventDefault();
@@ -960,6 +1044,12 @@
       await new Promise((r) => setTimeout(r, 3000)); // checa a cada 3s, por ~3 minutos
     }
     statusEl.textContent = "Ainda não identificamos o pagamento. Se já pagou, aguarde mais um pouco ou atualize a página.";
+  }
+
+  // Se a pessoa chegou aqui pelo link de redefinição de senha do e-mail,
+  // abre o modal direto na tela certa, sem precisar clicar em "Entrar".
+  if (new URLSearchParams(window.location.search).get("resetar")) {
+    abrir();
   }
 </script>
 
